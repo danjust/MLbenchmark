@@ -27,7 +27,7 @@ def Benchmark_Conv(n,kernelsize,iterations,dev):
     with tf.device(dev):
         matA = tf.Variable(tf.ones([1,n,n,1],dtype=tf.float32))
         kernel = tf.Variable(tf.ones([kernelsize,kernelsize,1,1],dtype=tf.float32))
-        conv = tf.nn.conv2d(input=matA,filter=kernel,strides=[1,1,1,1],padding="SAME")
+        conv = tf.nn.conv2d(input=matA,filter=kernel,strides=[1,1,1,1],padding="VALID")
 
     # Creates the session
     config = tf.ConfigProto(graph_options=tf.GraphOptions(optimizer_options=tf.OptimizerOptions(opt_level=tf.OptimizerOptions.L0)))
