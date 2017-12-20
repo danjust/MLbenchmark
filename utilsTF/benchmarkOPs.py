@@ -2,10 +2,10 @@ import tensorflow as tf
 import time
 
 
-def Benchmark_MatMul(n,iterations,dev):
+def Benchmark_MatMul(n,iterations,dev,datatype):
     with tf.device(dev):
-        matA = tf.Variable(tf.ones([n,n],dtype=tf.float32))
-        matB = tf.Variable(tf.ones([n,n],dtype=tf.float32))
+        matA = tf.Variable(tf.ones([n,n],dtype=datatype))
+        matB = tf.Variable(tf.ones([n,n],dtype=datatype))
         prod = tf.matmul(matA,matB)
 
     # Creates the session
@@ -23,10 +23,10 @@ def Benchmark_MatMul(n,iterations,dev):
     return (time.time()-t)/iterations
 
 
-def Benchmark_Conv(n,kernelsize,iterations,dev):
+def Benchmark_Conv(n,kernelsize,iterations,dev,datatype):
     with tf.device(dev):
-        matA = tf.Variable(tf.ones([1,n,n,1],dtype=tf.float32))
-        kernel = tf.Variable(tf.ones([kernelsize,kernelsize,1,1],dtype=tf.float32))
+        matA = tf.Variable(tf.ones([1,n,n,1],dtype=datatype))
+        kernel = tf.Variable(tf.ones([kernelsize,kernelsize,1,1],dtype=datatype))
         conv = tf.nn.conv2d(input=matA,filter=kernel,strides=[1,1,1,1],padding="VALID")
 
     # Creates the session
