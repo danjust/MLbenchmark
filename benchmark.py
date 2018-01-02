@@ -14,11 +14,11 @@ tf.app.flags.DEFINE_bool('testConv', True, 'Benchmark 2D convolution')
 tf.app.flags.DEFINE_bool('testRNN', True, 'Benchmark recurrent neural networks')
 
 # General parameters
-tf.app.flags.DEFINE_integer('iter', 10, 'Number opf iterations')
 tf.app.flags.DEFINE_string('dev', '/gpu:0', 'Device name')
 tf.app.flags.DEFINE_string('datatype', 'float32', 'Datatype')
 
 # Parameters for matrix multiplication / convolution
+tf.app.flags.DEFINE_integer('iter', 10, 'Number of iterations')
 tf.app.flags.DEFINE_integer('matsize', 1024, 'Size of each matrix for benchmark')
 tf.app.flags.DEFINE_integer('kernelsize', 15, 'Size of kernel for benchmarking convolution')
 
@@ -30,6 +30,7 @@ tf.app.flags.DEFINE_integer('num_samples', 10000, 'Total number of samples of le
 tf.app.flags.DEFINE_integer('num_units', 32, 'Number of hidden units')
 tf.app.flags.DEFINE_integer('num_classes', 10, 'Number of target classes')
 tf.app.flags.DEFINE_integer('learning_rate', 0.001, 'Learning rate')
+tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -72,7 +73,6 @@ def main(_):
                 1/timeUsed))
 
         if FLAGS.testRNN:
-            rnn_type,seq_length,batch_size,num_samples,num_units,num_classes,learning_rate,iterations,dev,dtype
             timeUsed = benchmark_crnn(
                     FLAGS.rnn_type,
                     FLAGS.seq_length,
@@ -81,7 +81,7 @@ def main(_):
                     FLAGS.num_units,
                     FLAGS.num_classes,
                     FLAGS.learning_rate,
-                    FLAGS.iter,
+                    FLAGS.iter_rnn,
                     FLAGS.dev,
                     eval('np.%s' %(FLAGS.datatype))
             print("%s:  %.2f steps per sec"
