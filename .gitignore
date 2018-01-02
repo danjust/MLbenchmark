@@ -1,4 +1,5 @@
-_*
+__pycache__/
 *.pyc
 *tmp*
+*.so
 .ipynb_checkpoint*
