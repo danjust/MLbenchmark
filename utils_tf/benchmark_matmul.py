@@ -5,6 +5,7 @@ import time
 
 
 def benchmark_matmul(n,iterations,dev,datatype):
+    datatype = eval('tf.%s' %(datatype))
     with tf.device(dev):
         matA = tf.Variable(tf.ones([n,n],dtype=datatype))
         matB = tf.Variable(tf.ones([n,n],dtype=datatype))

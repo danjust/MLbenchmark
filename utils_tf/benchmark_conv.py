@@ -5,6 +5,7 @@ import time
 
 
 def benchmark_conv(n,kernelsize,iterations,dev,datatype):
+    datatype = eval('tf.%s' %(datatype))
     with tf.device(dev):
         matA = tf.Variable(tf.ones([1,n,n,1],dtype=datatype))
         kernel = tf.Variable(

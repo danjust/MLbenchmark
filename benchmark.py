@@ -46,8 +46,8 @@ def main(_):
                 FLAGS.matsize,
                 FLAGS.iter,
                 FLAGS.dev,
-                eval('tf.%s' %(FLAGS.datatype))
-        print("%d x %d matrix multiplication(%s): %.2f GFLOPS (%.2f matrices per sec)"
+                FLAGS.datatype)
+        print("\n%d x %d matrix multiplication(%s): %.2f GFLOPS (%.2f matrices per sec)"
                 % (FLAGS.matsize,
                 FLAGS.matsize,
                 FLAGS.datatype,
@@ -64,29 +64,29 @@ def main(_):
                 FLAGS.kernelsize,
                 FLAGS.iter,
                 FLAGS.dev,
-                eval('tf.%s' %(FLAGS.datatype))
-        print("%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
+                FLAGS.datatype)
+        print("\n%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
                 % (FLAGS.matsize,
                 FLAGS.kernelsize,
                 FLAGS.datatype,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
-        if FLAGS.testRNN:
-            timeUsed = benchmark_crnn(
-                    FLAGS.rnn_type,
-                    FLAGS.seq_length,
-                    FLAGS.batch_size,
-                    FLAGS.num_samples,
-                    FLAGS.num_units,
-                    FLAGS.num_classes,
-                    FLAGS.learning_rate,
-                    FLAGS.iter_rnn,
-                    FLAGS.dev,
-                    eval('np.%s' %(FLAGS.datatype))
-            print("%s:  %.2f steps per sec"
-                    % (FLAGS.rnn_type,
-                    1/timeUsed))
+    if FLAGS.testRNN:
+        timeUsed = benchmark_rnn(
+                FLAGS.rnn_type,
+                FLAGS.seq_length,
+                FLAGS.batch_size,
+                FLAGS.num_samples,
+                FLAGS.num_units,
+                FLAGS.num_classes,
+                FLAGS.learning_rate,
+                FLAGS.iter_rnn,
+                FLAGS.dev,
+                FLAGS.datatype)
+        print("\n%s:  %.2f steps per sec"
+                % (FLAGS.rnn_type,
+                1/timeUsed))
 
 if __name__ == '__main__':
   tf.app.run()

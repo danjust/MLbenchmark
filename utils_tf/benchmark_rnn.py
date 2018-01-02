@@ -7,9 +7,20 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.contrib import rnn
 
-def benchmark_rnn(rnn_type,seq_length,batch_size,num_samples,num_units,num_classes,learning_rate,iterations,dev,dtype):
+def benchmark_rnn(
+        rnn_type,
+        seq_length,
+        batch_size,
+        num_samples,
+        num_units,
+        num_classes,
+        learning_rate,
+        iterations,
+        dev,datatype):
+    datatype = eval('np.%s' %(datatype))
+
     # Generate synthetic data
-    data = np.random.rand(num_samples,seq_length).astype(dtype)
+    data = np.random.rand(num_samples,seq_length).astype(datatype)
     target = np.zeros([num_samples,num_classes])
     target[[ix for ix in range(num_samples)], np.random.randint(num_classes)] = 1
 
