@@ -4,12 +4,14 @@ import tensorflow as tf
 import time
 
 
-def benchmark_matmul(n,iterations,dev,datatype):
+def benchmark_matmul(n,iterations,devlist,datatype):
+    devlist = devlist.split(',')
     datatype = eval('tf.%s' %(datatype))
-    with tf.device(dev):
-        matA = tf.Variable(tf.ones([n,n],dtype=datatype))
-        matB = tf.Variable(tf.ones([n,n],dtype=datatype))
-        prod = tf.matmul(matA,matB)
+    for dev in devlist:
+        with tf.device(dev):
+            matA = tf.Variable(tf.ones([n,n],dtype=datatype))
+            matB = tf.Variable(tf.ones([n,n],dtype=datatype))
+            prod = tf.matmul(matA,matB)
 
     # Creates the session
     config = tf.ConfigProto(

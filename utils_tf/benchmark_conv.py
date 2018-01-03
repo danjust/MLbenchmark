@@ -4,17 +4,20 @@ import tensorflow as tf
 import time
 
 
-def benchmark_conv(n,kernelsize,iterations,dev,datatype):
+def benchmark_conv(n,kernelsize,iterations,devlist,datatype):
+    devlist = devlist.split(',')
     datatype = eval('tf.%s' %(datatype))
-    with tf.device(dev):
-        matA = tf.Variable(tf.ones([1,n,n,1],dtype=datatype))
-        kernel = tf.Variable(
-                tf.ones([kernelsize,kernelsize,1,1],
-                dtype=datatype))
-        conv = tf.nn.conv2d(
-                input=matA,filter=kernel,
-                strides=[1,1,1,1],
-                padding="VALID")
+
+    for dev in devlist:
+        with tf.device(dev):
+            matA = tf.Variable(tf.ones([1,n,n,1],dtype=datatype))
+            kernel = tf.Variable(
+                    tf.ones([kernelsize,kernelsize,1,1],
+                    dtype=datatype))
+            conv = tf.nn.conv2d(
+                    input=matA,filter=kernel,
+                    strides=[1,1,1,1],
+                    padding="VALID")
 
     # Creates the session
     config = tf.ConfigProto(

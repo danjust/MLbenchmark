@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_bool('testConv', True, 'Benchmark 2D convolution')
 tf.app.flags.DEFINE_bool('testRNN', True, 'Benchmark recurrent neural networks')
 
 # General parameters
-tf.app.flags.DEFINE_string('dev', '/gpu:0', 'Device name')
+tf.app.flags.DEFINE_string('devlist', '/gpu:0', 'List of device names')
 tf.app.flags.DEFINE_string('datatype', 'float32', 'Datatype')
 
 # Parameters for matrix multiplication / convolution
@@ -45,7 +45,7 @@ def main(_):
         timeUsed = benchmark_matmul(
                 FLAGS.matsize,
                 FLAGS.iter,
-                FLAGS.dev,
+                FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%d x %d matrix multiplication(%s): %.2f GFLOPS (%.2f matrices per sec)"
                 % (FLAGS.matsize,
@@ -63,7 +63,7 @@ def main(_):
                 FLAGS.matsize,
                 FLAGS.kernelsize,
                 FLAGS.iter,
-                FLAGS.dev,
+                FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
                 % (FLAGS.matsize,
@@ -82,7 +82,7 @@ def main(_):
                 FLAGS.num_classes,
                 FLAGS.learning_rate,
                 FLAGS.iter_rnn,
-                FLAGS.dev,
+                FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%s:  %.2f steps per sec"
                 % (FLAGS.rnn_type,

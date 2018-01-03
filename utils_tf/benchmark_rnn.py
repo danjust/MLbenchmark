@@ -16,7 +16,9 @@ def benchmark_rnn(
         num_classes,
         learning_rate,
         iterations,
-        dev,datatype):
+        devlist,
+        datatype):
+    devlist = devlist.split(',')
     datatype = eval('np.%s' %(datatype))
 
     # Generate synthetic data
@@ -25,31 +27,31 @@ def benchmark_rnn(
     target[[ix for ix in range(num_samples)], np.random.randint(num_classes)] = 1
 
     # Initialize graph
-    with tf.device(dev):
-        tf.reset_default_graph()
-        X = tf.placeholder("float", [None, seq_length])
-        Y = tf.placeholder("float", [None, num_classes])
-        weights = tf.Variable(tf.random_normal([num_units, num_classes]))
-        biases = tf.Variable(tf.random_normal([num_classes]))
+    for dev in devlist:
+        with tf.device(dev):
+            tf.reset_default_graph()
+            X = tf.placeholder("float", [None, seq_length])
+            Y = tf.placeholder("float", [None, num_classes])
+            weights = tf.Variable(tf.random_normal([num_units, num_classes]))
+            biases = tf.Variable(tf.random_normal([num_classes]))
 
-        if rnn_type=='rnn' or rnn_type=='RNN':
-            cell = rnn.BasicRNNCell(num_units)
-        elif rnn_type=='lstm' or rnn_type=='LSTM':
-            cell = rnn.BasicLSTMCell(num_units, forget_bias=1.0)
-        else:
-            raise Exception('Unknown rnn type %s, must be rnn or lstm '%(network_type))
+            if rnn_type=='rnn' or rnn_type=='RNN':
+                cell = rnn.BasicRNNCell(num_units)
+            elif rnn_type=='lstm' or rnn_type=='LSTM':
+                cell = rnn.BasicLSTMCell(num_units, forget_bias=1.0)
+            else:
+                raise Exception('Unknown rnn type %s, must be rnn or lstm '%(network_type))
 
-        outputs, states = rnn.static_rnn(cell, [X], dtype=tf.float32)
+            outputs, states = rnn.static_rnn(cell, [X], dtype=tf.float32)
 
-        logits = tf.matmul(outputs[-1], weights) + biases
-        prediction = tf.nn.softmax(logits)
+            logits = tf.matmul(outputs[-1], weights) + biases
+            prediction = tf.nn.softmax(logits)
 
-        loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-                        logits=logits,
-                        labels=Y))
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
-        train_op = optimizer.minimize(loss_op)
-
+            loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+                            logits=logits,
+                            labels=Y))
+            optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+            train_op = optimizer.minimize(loss_op)
 
     # Creates the session
     config = tf.ConfigProto(
