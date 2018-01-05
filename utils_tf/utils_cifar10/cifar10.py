@@ -44,7 +44,7 @@ import tarfile
 from six.moves import urllib
 import tensorflow as tf
 
-from utils_tf.cifar10_benchmark import cifar10_input
+from utils_tf.utils_cifar10 import cifar10_input
 
 
 # Global constants describing the CIFAR-10 data set.

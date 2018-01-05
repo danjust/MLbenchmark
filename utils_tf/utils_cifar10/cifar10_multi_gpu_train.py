@@ -48,7 +48,7 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-from utils_tf.cifar10_benchmark import cifar10
+from utils_tf.utils_cifar10 import cifar10
 
 parser = cifar10.parser
 
