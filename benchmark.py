@@ -38,7 +38,6 @@ tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 tf.app.flags.DEFINE_integer('steps_cnn', 100, 'Number of steps to train CNN')
 tf.app.flags.DEFINE_integer('batch_size_cnn', 128, 'Number of steps to train CNN')
 tf.app.flags.DEFINE_string('data_dir', '/data', 'Directory with training data')
-tf.app.flags.DEFINE_string('train_dir', '/traindir', 'Directory with training logs')
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -98,10 +97,10 @@ def main(_):
     if FLAGS.testCNN:
         timeUsed = benchmark_cnn.train(
                 FLAGS.data_dir,
-                FLAGS.train_dir,
                 FLAGS.batch_size_cnn,
-                FLAGS.steps_cnn)
-        print("convolutional neural network, %d training steps:  %.2f steps per sec (%2.f images per sec)"
+                FLAGS.steps_cnn,
+                FLAGS.devlist)
+        print("convolutional neural network, %d training steps: %.2f steps per sec (%2.f images per sec)"
                 % (FLAGS.steps_cnn,
                 FLAGS.steps_cnn/timeUsed,
                 FLAGS.steps_cnn*FLAGS.batch_size_cnn/timeUsed))
