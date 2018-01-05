@@ -42,7 +42,7 @@ import os
 
 import tensorflow as tf
 
-from utils_tf.cifar10_benchmark import cifar10, cifar10_input
+from utils_tf.utils_cifar10 import cifar10, cifar10_input
 
 
 def train(data_dir,train_dir,batch_size,max_steps):
