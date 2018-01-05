@@ -37,8 +37,8 @@ tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 # Parameters for CNNs
 tf.app.flags.DEFINE_integer('steps_cnn', 100, 'Number of steps to train CNN')
 tf.app.flags.DEFINE_integer('batch_size_cnn', 128, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_string('data_dir', '/home/djustus/Data/cifar10', 'Directory with training data')
-tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10logs', 'Directory with training logs')
+tf.app.flags.DEFINE_string('data_dir', '/data', 'Directory with training data')
+tf.app.flags.DEFINE_string('train_dir', '/traindir', 'Directory with training logs')
 
 FLAGS = tf.app.flags.FLAGS
 
