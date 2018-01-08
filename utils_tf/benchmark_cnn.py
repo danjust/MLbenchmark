@@ -17,7 +17,7 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
         if num_gpu==0:
             devlist = ['/cpu:0']
         else:
-            devlist = ['gpu:%d' %i for i in range(num_gpu)]
+            devlist = ['/gpu:%d' %i for i in range(num_gpu)]
 
     with tf.Graph().as_default():
         global_step = tf.train.get_or_create_global_step()
@@ -25,24 +25,24 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
         # Get images and labels for CIFAR-10.
         # Force input pipeline to CPU:0 to avoid operations sometimes
         # ending up on GPU and resulting in a slow down.
-        with tf.device('/cpu:0'):
-            binary_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
-            images, labels = cifar10_input.inputs(eval_data=False,
-                                                data_dir=binary_dir,
-                                                batch_size=batch_size)
+        for dev in devlist:
+            with tf.device(dev):
+                binary_dir = os.path.join(data_dir, 'cifar-10-batches-bin')
+                images, labels = cifar10_input.inputs(eval_data=False,
+                                                    data_dir=binary_dir,
+                                                    batch_size=batch_size)
 
-            for dev in devlist:
-                with tf.device(dev):
-                    # Build a Graph that computes the logits predictions from the
-                    # inference model.
-                    logits = cifar10.inference(images,batch_size)
 
-                    # Calculate loss.
-                    loss = cifar10.loss(logits, labels)
+                # Build a Graph that computes the logits predictions from the
+                # inference model.
+                logits = cifar10.inference(images,batch_size)
 
-                    # Build a Graph that trains the model with one batch of examples and
-                    # updates the model parameters.
-                    train_op = cifar10.train(loss, global_step,batch_size)
+                # Calculate loss.
+                loss = cifar10.loss(logits, labels)
+
+                # Build a Graph that trains the model with one batch of examples and
+                # updates the model parameters.
+                train_op = cifar10.train(loss, global_step,batch_size)
 
         with tf.train.MonitoredTrainingSession() as mon_sess:
             print("========================================\n")

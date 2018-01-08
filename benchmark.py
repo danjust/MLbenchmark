@@ -55,7 +55,7 @@ def main(_):
                 FLAGS.num_gpu,
                 FLAGS.devlist,
                 FLAGS.datatype)
-        print("\n%d x %d matrix multiplication(%s): %.2f GFLOPS (%.2f matrices per sec)"
+        print("\n%d x %d matrix multiplication (%s): %.2f GFLOPS (%.2f matrices per sec)"
                 % (FLAGS.matsize,
                 FLAGS.matsize,
                 FLAGS.datatype,
