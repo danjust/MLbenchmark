@@ -23,9 +23,8 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
     config = tf.ConfigProto(
             graph_options=tf.GraphOptions(
                     optimizer_options=tf.OptimizerOptions(
-                            opt_level=tf.OptimizerOptions.L0)
-                    )
-            )
+                            opt_level=tf.OptimizerOptions.L0)),
+            log_device_placement=False)
     sess = tf.Session(config=config)
     sess.run(tf.global_variables_initializer())
 
