@@ -43,7 +43,9 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
                 # updates the model parameters.
                 train_op = cifar10.train(loss, global_step,batch_size)
 
-        with tf.Session() as sess:
+        with tf.Session(config=tf.ConfigProto(
+                allow_soft_placement=True,
+                log_device_placement=False)) as sess:
             sess.run(tf.global_variables_initializer())
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess,coord=coord)
