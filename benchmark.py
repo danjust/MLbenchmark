@@ -49,6 +49,8 @@ def main(_):
                 + (FLAGS.matsize-1)*FLAGS.matsize**2)
                 # matsize**3 multiplications,
                 # (matsize-1)*matsize**2 additions
+        print("========================================\n")
+        print("Start matrix multiplication")
         timeUsed = benchmark_matmul.benchmark_matmul(
                 FLAGS.matsize,
                 FLAGS.iter,
@@ -67,6 +69,8 @@ def main(_):
                 * (FLAGS.kernelsize**3
                 + (FLAGS.kernelsize-1)*FLAGS.kernelsize**2))
                 # (matsize.kernelsize+1)**2 GEMMs
+        print("========================================\n")
+        print("Start convolution")
         timeUsed = benchmark_conv.benchmark_conv(
                 FLAGS.matsize,
                 FLAGS.kernelsize,
@@ -82,6 +86,8 @@ def main(_):
                 1/timeUsed))
 
     if FLAGS.testRNN:
+        print("========================================\n")
+        print("Start recurrent neural network (%s)" %FLAGS.rnn_type)
         timeUsed = benchmark_rnn.benchmark_rnn(
                 FLAGS.rnn_type,
                 FLAGS.seq_length,
@@ -99,6 +105,8 @@ def main(_):
                 1/timeUsed))
 
     if FLAGS.testCNN:
+        print("========================================\n")
+        print("Start training convolutional neural network")
         timeUsed = benchmark_cnn.train(
                 FLAGS.data_dir,
                 FLAGS.batch_size_cnn,

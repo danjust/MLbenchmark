@@ -18,7 +18,9 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
             devlist = ['/cpu:0']
         else:
             devlist = ['/gpu:%d' %i for i in range(num_gpu)]
-
+    else:
+        devlist = devlist.split(',')
+        
     with tf.Graph().as_default():
         global_step = tf.train.get_or_create_global_step()
         # Get images and labels for CIFAR-10.
@@ -50,14 +52,11 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=sess,coord=coord)
 
-            print("========================================\n")
-            print("start training cnn")
             tstart = time.time()
             for steps in range(max_steps):
                 sess.run(train_op)
             tstop = time.time()
             dur = tstop-tstart
-            print("========================================\n")
             coord.request_stop()
             coord.join(threads)
     return dur

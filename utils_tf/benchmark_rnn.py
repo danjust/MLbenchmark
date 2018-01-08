@@ -26,8 +26,9 @@ def benchmark_rnn(
             devlist = ['/cpu:0']
         else:
             devlist = ['/gpu:%d' %i for i in range(num_gpu)]
-
-    devlist = devlist.split(',')
+    else:
+        devlist = devlist.split(',')
+        
     datatype = eval('np.%s' %(datatype))
 
     # Generate synthetic data

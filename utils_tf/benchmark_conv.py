@@ -11,7 +11,9 @@ def benchmark_conv(n,kernelsize,iterations,num_gpu,devlist,datatype):
             devlist = ['/cpu:0']
         else:
             devlist = ['/gpu:%d' %i for i in range(num_gpu)]
-
+    else:
+        devlist = devlist.split(',')
+        
     datatype = eval('tf.%s' %(datatype))
 
     for dev in devlist:
