@@ -16,7 +16,8 @@ tf.app.flags.DEFINE_bool('testRNN', False, 'Benchmark recurrent neural networks'
 tf.app.flags.DEFINE_bool('testCNN', False, 'Benchmark a cnn training on cifar10')
 
 # General parameters
-tf.app.flags.DEFINE_string('devlist', '/gpu:0', 'List of device names')
+tf.app.flags.DEFINE_integer('num_gpu', 1, 'Number of GPUs to use')
+tf.app.flags.DEFINE_string('devlist', '', 'List of devices to use, overwrites num_gpu if set')
 tf.app.flags.DEFINE_string('datatype', 'float32', 'Datatype')
 
 # Parameters for matrix multiplication / convolution
@@ -51,6 +52,7 @@ def main(_):
         timeUsed = benchmark_matmul.benchmark_matmul(
                 FLAGS.matsize,
                 FLAGS.iter,
+                FLAGS.num_gpu,
                 FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%d x %d matrix multiplication(%s): %.2f GFLOPS (%.2f matrices per sec)"
@@ -69,6 +71,7 @@ def main(_):
                 FLAGS.matsize,
                 FLAGS.kernelsize,
                 FLAGS.iter,
+                FLAGS.num_gpu,
                 FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
@@ -88,6 +91,7 @@ def main(_):
                 FLAGS.num_classes,
                 FLAGS.learning_rate,
                 FLAGS.iter_rnn,
+                FLAGS.num_gpu,
                 FLAGS.devlist,
                 FLAGS.datatype)
         print("\n%s:  %.2f steps per sec"
@@ -99,6 +103,7 @@ def main(_):
                 FLAGS.data_dir,
                 FLAGS.batch_size_cnn,
                 FLAGS.steps_cnn,
+                FLAGS.num_gpu,
                 FLAGS.devlist)
         print("convolutional neural network, %d training steps: %.2f steps per sec (%2.f images per sec)"
                 % (FLAGS.steps_cnn,

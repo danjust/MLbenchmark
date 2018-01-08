@@ -16,8 +16,17 @@ def benchmark_rnn(
         num_classes,
         learning_rate,
         iterations,
+        num_gpu,
         devlist,
         datatype):
+
+    # generate list of devices if devlist is empty
+    if devlist=='':
+        if num_gpu==0:
+            devlist = ['/cpu:0']
+        else:
+            devlist = ['gpu:%d' %i for i in range(num_gpu)]
+
     devlist = devlist.split(',')
     datatype = eval('np.%s' %(datatype))
 

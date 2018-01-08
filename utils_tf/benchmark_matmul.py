@@ -4,8 +4,14 @@ import tensorflow as tf
 import time
 
 
-def benchmark_matmul(n,iterations,devlist,datatype):
-    devlist = devlist.split(',')
+def benchmark_matmul(n,iterations,num_gpu,datatype,devlist):
+    # generate list of devices if devlist is empty
+    if devlist=='':
+        if num_gpu==0:
+            devlist = ['/cpu:0']
+        else:
+            devlist = ['gpu:%d' %i for i in range(num_gpu)]
+
     datatype = eval('tf.%s' %(datatype))
     for dev in devlist:
         with tf.device(dev):

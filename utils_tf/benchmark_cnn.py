@@ -11,8 +11,14 @@ import tensorflow as tf
 from utils_tf.utils_cifar10 import cifar10, cifar10_input
 
 
-def train(data_dir,batch_size,max_steps,devlist):
-    devlist = devlist.split(',')
+def train(data_dir,batch_size,max_steps,num_gpu,devlist):
+    # generate list of devices if devlist is empty
+    if devlist=='':
+        if num_gpu==0:
+            devlist = ['/cpu:0']
+        else:
+            devlist = ['gpu:%d' %i for i in range(num_gpu)]
+
     with tf.Graph().as_default():
         global_step = tf.train.get_or_create_global_step()
 
