@@ -31,28 +31,24 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
                                                 data_dir=binary_dir,
                                                 batch_size=batch_size)
 
-        for dev in devlist:
-            with tf.device(dev):
-                # Build a Graph that computes the logits predictions from the
-                # inference model.
-                logits = cifar10.inference(images,batch_size)
+            for dev in devlist:
+                with tf.device(dev):
+                    # Build a Graph that computes the logits predictions from the
+                    # inference model.
+                    logits = cifar10.inference(images,batch_size)
 
-                # Calculate loss.
-                loss = cifar10.loss(logits, labels)
+                    # Calculate loss.
+                    loss = cifar10.loss(logits, labels)
 
-                # Build a Graph that trains the model with one batch of examples and
-                # updates the model parameters.
-                train_op = cifar10.train(loss, global_step,batch_size)
+                    # Build a Graph that trains the model with one batch of examples and
+                    # updates the model parameters.
+                    train_op = cifar10.train(loss, global_step,batch_size)
 
-        with tf.train.MonitoredTrainingSession(
-                hooks=[tf.train.StopAtStepHook(last_step=max_steps),
-                       tf.train.NanTensorHook(loss)],
-                config=tf.ConfigProto(log_device_placement=False)) as mon_sess:
-
+        with tf.train.MonitoredTrainingSession() as mon_sess:
             print("========================================\n")
             print("start training cnn")
             tstart = time.time()
-            while not mon_sess.should_stop():
+            for steps in range(max_steps):
                 mon_sess.run(train_op)
             tstop = time.time()
             dur = tstop-tstart
