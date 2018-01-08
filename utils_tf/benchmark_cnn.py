@@ -46,9 +46,9 @@ def train(data_dir,batch_size,max_steps,num_gpu,devlist):
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             coord = tf.train.Coordinator()
-            tf.train.start_queue_runners(sess=sess,coord=coord)
+            threads = tf.train.start_queue_runners(sess=sess,coord=coord)
 
-            threads = print("========================================\n")
+            print("========================================\n")
             print("start training cnn")
             tstart = time.time()
             for steps in range(max_steps):
