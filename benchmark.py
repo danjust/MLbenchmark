@@ -10,10 +10,10 @@ from  utils_tf import benchmark_cnn
 
 
 # Benchmarks to perform
-tf.app.flags.DEFINE_bool('testMatMul', True, 'Benchmark matrix multiplication')
-tf.app.flags.DEFINE_bool('testConv', True, 'Benchmark 2D convolution')
+tf.app.flags.DEFINE_bool('testMatMul', False, 'Benchmark matrix multiplication')
+tf.app.flags.DEFINE_bool('testConv', False, 'Benchmark 2D convolution')
 tf.app.flags.DEFINE_bool('testRNN', False, 'Benchmark recurrent neural networks')
-tf.app.flags.DEFINE_bool('testCNN', False, 'Benchmark a cnn training on cifar10')
+tf.app.flags.DEFINE_bool('testCNN', False, 'Benchmark a cnn training on sythetic data')
 
 # General parameters
 tf.app.flags.DEFINE_integer('num_gpu', 1, 'Number of GPUs to use')
@@ -36,9 +36,17 @@ tf.app.flags.DEFINE_integer('learning_rate', 0.001, 'Learning rate')
 tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 # Parameters for CNNs
-tf.app.flags.DEFINE_integer('steps_cnn', 100, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_integer('batch_size_cnn', 128, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_string('data_dir', '/data', 'Directory with training data')
+tf.app.flags.DEFINE_integer('num_layers_cnn', 3, 'Number of convolution/pooling layers in CNN')
+tf.app.flags.DEFINE_integer('num_features', [16,64,128], 'Vector containing the number of features in each convolutional layer')
+tf.app.flags.DEFINE_integer('kernel_cnn', [3,3,3], 'Vector containing the kernelsize in each convolutional layer')
+tf.app.flags.DEFINE_integer('pooling_cnn', [3,3,3], 'Vector containing the size of max pooling in each pooling layer')
+tf.app.flags.DEFINE_integer('num_trainimg', 100000, 'Number of training images')
+tf.app.flags.DEFINE_integer('num_testimg', 1000, 'Number of validation images')
+tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
+tf.app.flags.DEFINE_integer('numsteps_cnn', 500, 'Number of steps to train CNN')
+tf.app.flags.DEFINE_integer('batchsize_cnn', 32, 'Number of steps to train CNN')
+tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
+
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -107,16 +115,28 @@ def main(_):
     if FLAGS.testCNN:
         print("========================================\n")
         print("Start training convolutional neural network")
-        timeUsed = benchmark_cnn.train(
-                FLAGS.data_dir,
-                FLAGS.batch_size_cnn,
-                FLAGS.steps_cnn,
-                FLAGS.num_gpu,
-                FLAGS.devlist)
-        print("convolutional neural network, %d training steps: %.2f steps per sec (%2.f images per sec)"
-                % (FLAGS.steps_cnn,
-                FLAGS.steps_cnn/timeUsed,
-                FLAGS.steps_cnn*FLAGS.batch_size_cnn/timeUsed))
+        timeUsed_train, timeUsed_infer, _ = benchmark_cnn.benchmark_cnn(
+                FLAGS.num_layers_cnn,
+                FLAGS.num_features,
+                FLAGS.kernel_cnn,
+                FLAGS.pooling_cnn,
+                FLAGS.num_trainimg,
+                FLAGS.num_testimg,
+                FLAGS.imgsize,
+                FLAGS.numsteps_cnn,
+                FLAGS.batchsize_cnn,
+                FLAGS.logstep_cnn)
+        print("========================================\n")
+        print("convolutional neural network, %d training steps: " \
+                "%.2f steps per sec (%2.f images per sec) \n" \
+                "%d images inferred: %.2f sec (%.2f images per sec)"
+                % (FLAGS.numsteps_cnn,
+                FLAGS.numsteps_cnn/timeUsed_train,
+                FLAGS.numsteps_cnn*FLAGS.batchsize_cnn/timeUsed_train,
+                FLAGS.num_testimg,
+                timeUsed_infer,
+                FLAGS.num_testimg/timeUsed_infer
+                ))
 
 if __name__ == '__main__':
   tf.app.run()
