@@ -11,7 +11,7 @@ with the following optional arguments:
 
 #### Types of benchmarks
 --testMatMul (Whether to benchmark matrix multiplication, default False)<br/>
---testConv (Whether to Benchmark 2D convolution, default False)<br/>
+--testConv (Whether to benchmark 2D convolution, default False)<br/>
 --testRNN (Whether to benchmark recurrent neural networks, default False)<br/>
 --testCNN (Whether to benchmark a cnn training on sythetic data, default False)<br/>
 
