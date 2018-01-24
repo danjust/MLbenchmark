@@ -6,7 +6,7 @@ a synthetic dataset
 import tensorflow as tf
 import numpy as np
 import time
-from utils_tf.utils_cnn import build_cnn, build_cnn_multdevice, build_dataset
+from utils_tf.utils_cnn import build_cnn_multdevice, build_dataset
 
 def benchmark_cnn(
         num_layers,
