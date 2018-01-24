@@ -96,4 +96,4 @@ def build_graph(
         correct_prediction = tf.equal(tower_predict, tower_labels)
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
-    return g, x, y_, train_op, loss, accuracy
+    return g, x, y_, train_op, loss, accuracy, tower_predict

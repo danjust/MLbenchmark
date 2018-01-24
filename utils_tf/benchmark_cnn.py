@@ -31,7 +31,7 @@ def benchmark_cnn(
         devlist = devlist.split(',')
 
     # Generate the Graph
-    g, x, y_ , train_op, loss, accuracy = build_cnn_multdevice.build_graph(
+    g, x, y_ , train_op, loss, accuracy, prediction = build_cnn_multdevice.build_graph(
             num_layers,
             num_features,
             kernelsize,
@@ -61,7 +61,7 @@ def benchmark_cnn(
         timeUsed_train = time.time()-t_train
 
         t_infer = time.time()
-        acc_validation, results = sess.run([accuracy,logits],feed_dict={x: testimg, y_: testlabel})
+        acc_validation,prediction_validation = sess.run([accuracy,prediction],feed_dict={x: testimg, y_: testlabel})
         timeUsed_infer = time.time() - t_infer
         print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
 
