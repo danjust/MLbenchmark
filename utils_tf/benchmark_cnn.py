@@ -52,7 +52,7 @@ def benchmark_cnn(
         sess.run(tf.global_variables_initializer())
         t_train = time.time()
         for i in range(numsteps):
-            batch = np.random.randint(0,num_trainimg,batchsize*len(devlist))
+            batch = np.random.randint(0,num_trainimg,int(batchsize/len(devlist))*len(devlist))
             _, loss_step[i], acc[i] = sess.run([train_op,loss,accuracy],feed_dict={x: trainimg[batch,:,:], y_: trainlabel[batch,:]})
             if logstep > 0:
                 if i%logstep==0:
