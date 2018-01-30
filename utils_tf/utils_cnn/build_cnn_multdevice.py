@@ -16,12 +16,21 @@ def build_graph(
         devlist):
 
     numdev = len(devlist)
+    print(numdev)
     g = tf.Graph()
 
     with g.as_default():
         global_step = tf.get_variable(
                 'global_step', [],
-                initializer=tf.constant_initializer(0), trainable=False)
+                initializer=tf.constant_initializer(0),
+                trainable=False)
+
+        lr = tf.train.exponential_decay(.0001,
+                                    global_step,
+                                    10000,
+                                    .00001,
+                                    staircase=True)
+
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
 
         x = tf.placeholder(tf.float32, shape=[None, imgsize, imgsize, 1])
@@ -32,34 +41,40 @@ def build_graph(
         tower_gradients = []
         tower_predict = []
         tower_labels = []
+        tower_loss = []
 
         batchsize_per_gpu = tf.cast(batchsize/numdev,tf.int32)
+        with tf.device("/cpu:0"):
+            inputs_split = tf.split(x,numdev,axis=0)
+            labels_split = tf.split(y_,numdev,axis=0)
 
-
-        for i in range(numdev):
-            dev = devlist[i]
+        for dev_ind in range(numdev):
+            dev = devlist[dev_ind]
             print("device %s" % dev)
-            with tf.device(dev):
-                with tf.name_scope('tower_%d' % i) as scope:
-                    inputs = x[i*batchsize_per_gpu:(i+1)*batchsize_per_gpu,:,:,:]
-                    labels = y_[i*batchsize_per_gpu:(i+1)*batchsize_per_gpu,:]
+            print(dev_ind)
+            with tf.device(devlist[dev_ind]):
+                with tf.variable_scope('tower_%d' %dev_ind) as scope:
+                    input_tower = inputs_split[dev_ind]
+                    labels_tower = labels_split[dev_ind]
+                    for layer_ind in range(num_layers):
+                        if layer_ind==0:
+                            inputs = input_tower
+                        else:
+                            inputs = pool
 
-                    for i in range(num_layers):
                         conv = tf.layers.conv2d(
                                 inputs=inputs,
-                                filters=num_features[i],
-                                kernel_size=conv_kernel[i],
+                                filters=num_features[layer_ind],
+                                kernel_size=conv_kernel[layer_ind],
                                 strides=[1,1],
                                 padding='SAME',
                                 activation=tf.nn.relu)
 
                         pool = tf.layers.max_pooling2d(
                                 inputs=conv,
-                                pool_size=pooling[i],
-                                strides=pooling[i],
+                                pool_size=pooling[layer_ind],
+                                strides=pooling[layer_ind],
                                 padding='VALID')
-
-                        inputs = pool
 
 
                     pool_flat = tf.reshape(
@@ -82,12 +97,17 @@ def build_graph(
                     logits = tf.layers.dense(inputs=dropout, units=2)
 
                     loss = tf.losses.softmax_cross_entropy(
-                            onehot_labels=labels, logits=logits)
+                            onehot_labels=labels_tower,
+                            logits=logits)
 
-                    gradient = optimizer.compute_gradients(loss)
+                    params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,scope='tower_%d' %dev_ind)
+
+                    tf.get_variable_scope().reuse_variables()
+
+                    gradient = optimizer.compute_gradients(loss,var_list = params)
                     tower_gradients.append(gradient)
                     tower_predict.append(tf.argmax(logits,1))
-                    tower_labels.append(tf.argmax(labels,1))
+                    tower_labels.append(tf.argmax(labels_split[dev_ind],1))
 
         tower_predict = tf.stack(tower_predict)
         tower_labels = tf.stack(tower_labels)
