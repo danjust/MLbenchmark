@@ -49,9 +49,6 @@ tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to d
 tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
 tf.app.flags.DEFINE_integer('numsteps_cnn', 500, 'Number of steps to train CNN')
 tf.app.flags.DEFINE_integer('batchsize_cnn', 128, 'Batch size for training CNN')
-tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
-
-
 
 FLAGS = tf.app.flags.FLAGS
 
