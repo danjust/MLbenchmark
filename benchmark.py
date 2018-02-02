@@ -36,16 +36,19 @@ tf.app.flags.DEFINE_integer('learning_rate', 0.001, 'Learning rate')
 tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 # Parameters for CNNs
-tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data')
+tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data, leave empty for synthetic data')
 tf.app.flags.DEFINE_integer('num_layers_cnn', 3, 'Number of convolution/pooling layers in CNN')
-tf.app.flags.DEFINE_integer('num_features', [16,64,128], 'Vector containing the number of features in each convolutional layer')
+tf.app.flags.DEFINE_integer('num_features', [16,64,64], 'Vector containing the number of features in each convolutional layer')
 tf.app.flags.DEFINE_integer('kernel_cnn', [3,3,3], 'Vector containing the kernelsize in each convolutional layer')
-tf.app.flags.DEFINE_integer('pooling_cnn', [3,3,3], 'Vector containing the size of max pooling in each pooling layer')
-tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images')
-tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images')
+tf.app.flags.DEFINE_integer('pooling_cnn', [2,2,2], 'Vector containing the size of max pooling in each pooling layer')
+tf.app.flags.DEFINE_integer('lr_initial', 0.0001, 'Initial learning rate')
+tf.app.flags.DEFINE_integer('lr_final', 0.00001, 'Initial learning rate')
+tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images if synthetic data')
+tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images if synthetic data')
+tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
 tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
 tf.app.flags.DEFINE_integer('numsteps_cnn', 500, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_integer('batchsize_cnn', 256, 'Batch size for training CNN')
+tf.app.flags.DEFINE_integer('batchsize_cnn', 128, 'Batch size for training CNN')
 tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
 
 
@@ -122,6 +125,8 @@ def main(_):
                 FLAGS.num_features,
                 FLAGS.kernel_cnn,
                 FLAGS.pooling_cnn,
+                FLAGS.lr_initial,
+                FLAGS.lr_final,
                 FLAGS.num_trainimg,
                 FLAGS.num_testimg,
                 FLAGS.imgsize,
