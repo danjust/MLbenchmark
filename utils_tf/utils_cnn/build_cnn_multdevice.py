@@ -13,7 +13,7 @@ def build_graph(
         conv_kernel,
         pooling,
         lr_initial,
-        lr_final,
+        lr_decay,
         imgsize,
         num_channels,
         num_classes,
@@ -32,7 +32,7 @@ def build_graph(
         lr = tf.train.exponential_decay(lr_initial,
                                     global_step,
                                     10000,
-                                    lr_final,
+                                    lr_decay,
                                     staircase=True)
 
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)

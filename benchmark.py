@@ -41,8 +41,8 @@ tf.app.flags.DEFINE_integer('num_layers_cnn', 3, 'Number of convolution/pooling 
 tf.app.flags.DEFINE_integer('num_features', [16,64,64], 'Vector containing the number of features in each convolutional layer')
 tf.app.flags.DEFINE_integer('kernel_cnn', [3,3,3], 'Vector containing the kernelsize in each convolutional layer')
 tf.app.flags.DEFINE_integer('pooling_cnn', [2,2,2], 'Vector containing the size of max pooling in each pooling layer')
-tf.app.flags.DEFINE_integer('lr_initial', 0.0001, 'Initial learning rate')
-tf.app.flags.DEFINE_integer('lr_final', 0.00001, 'Initial learning rate')
+tf.app.flags.DEFINE_integer('lr_initial', 0.0005, 'Initial learning rate')
+tf.app.flags.DEFINE_integer('lr_decay', 0.95, 'Learning rate decay')
 tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images if synthetic data')
 tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images if synthetic data')
 tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
@@ -123,7 +123,7 @@ def main(_):
                 FLAGS.kernel_cnn,
                 FLAGS.pooling_cnn,
                 FLAGS.lr_initial,
-                FLAGS.lr_final,
+                FLAGS.lr_decay,
                 FLAGS.num_trainimg,
                 FLAGS.num_testimg,
                 FLAGS.imgsize,
