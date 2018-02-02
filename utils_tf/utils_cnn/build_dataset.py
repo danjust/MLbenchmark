@@ -1,8 +1,8 @@
 """Function to build a synthetic dataset of images"""
 
 import numpy as np
-import pickle
 import os
+import sys
 
 def build_dataset(num_trainimg,num_testimg,imgsize):
     trainimg = np.zeros([num_trainimg,imgsize,imgsize,1]).astype(np.float32)
@@ -32,12 +32,24 @@ def build_dataset(num_trainimg,num_testimg,imgsize):
     return trainimg, trainlabel, testimg, testlabel
 
 
-def unpickle(file):
+def unpickle3(file):
     import pickle
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
 
+def unpickle2(file):
+    import cPickle
+    with open(file, 'rb') as fo:
+        dict = cPickle.load(fo)
+    return dict
+
+def unpickle(file):
+    if sys.version_info.major==3:
+        dict = unpickle3(file)
+    elif sys.version_info.major==2:
+        dict = unpickle2(file)
+    return dict
 
 def import_cifar(data_dir):
     trainimg = np.empty([50000,3072])
