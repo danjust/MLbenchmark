@@ -13,6 +13,8 @@ def build_graph(
         conv_kernel,
         pooling,
         imgsize,
+        num_channels,
+        num_classes,
         devlist):
 
     numdev = len(devlist)
@@ -33,8 +35,8 @@ def build_graph(
 
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
 
-        x = tf.placeholder(tf.float32, shape=[None, imgsize, imgsize, 1])
-        y_ = tf.placeholder(tf.float32, shape=[None, 2])
+        x = tf.placeholder(tf.float32, shape=[None, imgsize, imgsize, num_channels])
+        y_ = tf.placeholder(tf.float32, shape=[None, num_classes])
 
         batchsize = tf.shape(x)[0]
 
@@ -94,13 +96,15 @@ def build_graph(
                             training=True)
 
 
-                    logits = tf.layers.dense(inputs=dropout, units=2)
+                    logits = tf.layers.dense(inputs=dropout, units=num_classes)
 
                     loss = tf.losses.softmax_cross_entropy(
                             onehot_labels=labels_tower,
                             logits=logits)
 
-                    params = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES,scope='tower_%d' %dev_ind)
+                    params = tf.get_collection(
+                            tf.GraphKeys.TRAINABLE_VARIABLES,
+                            scope='tower_%d' %dev_ind)
 
                     tf.get_variable_scope().reuse_variables()
 

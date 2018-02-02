@@ -36,6 +36,7 @@ tf.app.flags.DEFINE_integer('learning_rate', 0.001, 'Learning rate')
 tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 # Parameters for CNNs
+tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data')
 tf.app.flags.DEFINE_integer('num_layers_cnn', 3, 'Number of convolution/pooling layers in CNN')
 tf.app.flags.DEFINE_integer('num_features', [16,64,128], 'Vector containing the number of features in each convolutional layer')
 tf.app.flags.DEFINE_integer('kernel_cnn', [3,3,3], 'Vector containing the kernelsize in each convolutional layer')
@@ -44,8 +45,9 @@ tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images'
 tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images')
 tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
 tf.app.flags.DEFINE_integer('numsteps_cnn', 500, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_integer('batchsize_cnn', 32, 'Batch size for training CNN')
+tf.app.flags.DEFINE_integer('batchsize_cnn', 256, 'Batch size for training CNN')
 tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
+
 
 
 FLAGS = tf.app.flags.FLAGS
@@ -127,7 +129,8 @@ def main(_):
                 FLAGS.batchsize_cnn,
                 FLAGS.logstep_cnn,
                 FLAGS.num_gpu,
-                FLAGS.devlist)
+                FLAGS.devlist,
+                FLAGS.data_dir)
         print("========================================\n")
         print("convolutional neural network, %d training steps: " \
                 "%.2f steps per sec (%2.f images per sec) \n" \
