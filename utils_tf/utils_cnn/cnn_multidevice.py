@@ -44,8 +44,7 @@ def build_graph(
         for dev_ind in range(numdev):
             dev = devlist[dev_ind]
             print("device %s" % dev)
-            print(dev_ind)
-            with tf.device('/cpu:0'):#devlist[dev_ind]):
+            with tf.device(devlist[dev_ind]):
                 with tf.variable_scope('tower_%d' %0,reuse=(dev_ind>0)):
                     input_tower = inputs_split[dev_ind]
                     labels_tower = labels_split[dev_ind]
