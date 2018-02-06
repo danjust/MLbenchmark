@@ -6,7 +6,7 @@ a synthetic dataset
 import tensorflow as tf
 import numpy as np
 import time
-from utils_tf.utils_cnn import build_cnn_multdevice, build_dataset
+from utils_tf.utils_cnn import cnn_multidevice, build_dataset
 
 def benchmark_cnn(
         num_layers,
@@ -47,17 +47,30 @@ def benchmark_cnn(
     total_batchsize = int(batchsize*len(devlist))
 
     # Generate the Graph
-    g, x, y_ , train_op, loss, accuracy, prediction = build_cnn_multdevice.build_graph(
-            num_layers,
-            num_features,
-            kernelsize,
-            poolingsize,
-            lr_initial,
-            lr_final,
-            imgsize,
-            num_channels,
-            num_classes,
-            devlist)
+    # g, x, y_ , train_op, loss, accuracy, prediction = build_cnn_multdevice.build_graph(
+    #         num_layers,
+    #         num_features,
+    #         kernelsize,
+    #         poolingsize,
+    #         lr_initial,
+    #         lr_final,
+    #         imgsize,
+    #         num_channels,
+    #         num_classes,
+    #         devlist)
+
+    imgsize = 32
+    num_channels=3
+    num_classes=10
+    devlist=['/cpu:0','cpu:1']
+    batchsize=32
+
+    g, x, y_ , train_op, loss, accuracy = cnn_multidevice.build_graph(
+                imgsize,
+                num_channels,
+                num_classes,
+                batchsize,
+                devlist)
 
     # Generate the dataset
     if gen_data==True:
