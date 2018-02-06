@@ -37,10 +37,11 @@ tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 # Parameters for CNNs
 tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data, leave empty for synthetic data')
-tf.app.flags.DEFINE_integer('num_layers_cnn', 3, 'Number of convolution/pooling layers in CNN')
-tf.app.flags.DEFINE_integer('num_features', [16,64,64], 'Vector containing the number of features in each convolutional layer')
-tf.app.flags.DEFINE_integer('kernel_cnn', [3,3,3], 'Vector containing the kernelsize in each convolutional layer')
-tf.app.flags.DEFINE_integer('pooling_cnn', [2,2,2], 'Vector containing the size of max pooling in each pooling layer')
+tf.app.flags.DEFINE_integer('num_layers_cnn', 2, 'Number of convolution/pooling layers in CNN')
+tf.app.flags.DEFINE_integer('num_features', [16,64], 'Vector containing the number of features in each convolutional layer')
+tf.app.flags.DEFINE_integer('kernel_cnn', [5,3], 'Vector containing the kernelsize in each convolutional layer')
+tf.app.flags.DEFINE_integer('pooling_cnn', [2,2], 'Vector containing the size of max pooling in each pooling layer')
+tf.app.flags.DEFINE_integer('fully_connected_size', 256, 'Vector containing the size of max pooling in each pooling layer')
 tf.app.flags.DEFINE_integer('lr_initial', 0.0005, 'Initial learning rate')
 tf.app.flags.DEFINE_integer('lr_decay', 0.95, 'Learning rate decay')
 tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images if synthetic data')
@@ -122,6 +123,7 @@ def main(_):
                 FLAGS.num_features,
                 FLAGS.kernel_cnn,
                 FLAGS.pooling_cnn,
+                FLAGS.fully_connected_size,
                 FLAGS.lr_initial,
                 FLAGS.lr_decay,
                 FLAGS.num_trainimg,
@@ -134,12 +136,13 @@ def main(_):
                 FLAGS.devlist,
                 FLAGS.data_dir)
         print("========================================\n")
+        numdev=max(1,FLAGS.num_gpu)
         print("convolutional neural network, %d training steps: " \
                 "%.2f steps per sec (%2.f images per sec) \n" \
                 "%d images inferred: %.2f sec (%.2f images per sec)"
                 % (FLAGS.numsteps_cnn,
                 FLAGS.numsteps_cnn/timeUsed_train,
-                FLAGS.numsteps_cnn*FLAGS.batchsize_cnn/timeUsed_train,
+                FLAGS.numsteps_cnn*FLAGS.batchsize_cnn*numdev/timeUsed_train,
                 FLAGS.num_testimg,
                 timeUsed_infer,
                 FLAGS.num_testimg/timeUsed_infer

@@ -13,8 +13,9 @@ def benchmark_cnn(
         num_features,
         kernelsize,
         poolingsize,
+        fully_connected_size,
         lr_initial,
-        lr_final,
+        lr_decay,
         num_trainimg,
         num_testimg,
         imgsize,
@@ -47,24 +48,13 @@ def benchmark_cnn(
     total_batchsize = int(batchsize*len(devlist))
 
     # Generate the Graph
-    # g, x, y_ , train_op, loss, accuracy, prediction = build_cnn_multdevice.build_graph(
-    #         num_layers,
-    #         num_features,
-    #         kernelsize,
-    #         poolingsize,
-    #         lr_initial,
-    #         lr_final,
-    #         imgsize,
-    #         num_channels,
-    #         num_classes,
-    #         devlist)
-
-    fully_connected_size=256
-
     g, x, y_ , train_op, loss, accuracy = cnn_multidevice.build_graph(
+            num_layers,
             num_features,
             kernelsize,
             poolingsize,
+            lr_initial,
+            lr_decay,
             fully_connected_size,
             imgsize,
             num_channels,
