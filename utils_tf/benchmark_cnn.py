@@ -59,18 +59,17 @@ def benchmark_cnn(
     #         num_classes,
     #         devlist)
 
-    imgsize = 32
-    num_channels=3
-    num_classes=10
-    devlist=['/cpu:0','cpu:1']
-    batchsize=32
+    fully_connected_size=256
 
     g, x, y_ , train_op, loss, accuracy = cnn_multidevice.build_graph(
-                imgsize,
-                num_channels,
-                num_classes,
-                batchsize,
-                devlist)
+            num_features,
+            kernelsize,
+            poolingsize,
+            fully_connected_size,
+            imgsize,
+            num_channels,
+            num_classes,
+            devlist)
 
     # Generate the dataset
     if gen_data==True:
@@ -104,7 +103,7 @@ def benchmark_cnn(
         timeUsed_train = time.time()-t_train
 
         t_infer = time.time()
-        acc_validation,prediction_validation = sess.run([accuracy,prediction],feed_dict={x: testimg, y_: testlabel})
+        acc_validation = sess.run(accuracy,feed_dict={x: testimg, y_: testlabel})
         timeUsed_infer = time.time() - t_infer
         print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
 

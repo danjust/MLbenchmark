@@ -9,10 +9,13 @@ from utils_tf.utils_cnn import average_gradients
 
 
 def build_graph(
+        num_features,
+        conv_kernel,
+        pooling,
+        fully_connected_size,
         imgsize,
         num_channels,
         num_classes,
-        batchsize,
         devlist):
 
     numdev = len(devlist)
@@ -36,7 +39,6 @@ def build_graph(
         tower_labels = []
         tower_loss = []
 
-        batchsize_per_gpu = batchsize/numdev
         with tf.device("/cpu:0"):
             inputs_split = tf.split(x,numdev,axis=0)
             labels_split = tf.split(y_,numdev,axis=0)
@@ -45,19 +47,18 @@ def build_graph(
             dev = devlist[dev_ind]
             print("device %s" % dev)
             with tf.device(devlist[dev_ind]):
-                with tf.variable_scope('tower_%d' %0,reuse=(dev_ind>0)):
+                with tf.name_scope('tower_%d' %dev_ind):#,reuse=(dev_ind>0)):
                     input_tower = inputs_split[dev_ind]
                     labels_tower = labels_split[dev_ind]
 
-                    with tf.device('/cpu:0'):
-                        kernel0 = tf.get_variable(
-                                'weights0',
-                                shape=[5, 5, num_channels, 8],
-                                initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
-                        biases0 = tf.get_variable(
-                                'biases0',
-                                shape=[8],
-                                initializer=tf.constant_initializer(0.0))
+                    kernel0 = tf.get_variable(
+                            'weights0',
+                            shape=[conv_kernel[0], conv_kernel[0], num_channels, num_features[0]],
+                            initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    biases0 = tf.get_variable(
+                            'biases0',
+                            shape=[num_features[0]],
+                            initializer=tf.constant_initializer(0.0))
                     conv0 = tf.nn.conv2d(
                             input=input_tower,
                             filter=kernel0,
@@ -68,20 +69,25 @@ def build_graph(
 
                     pool0 = tf.nn.max_pool(
                             value=conv_nonlinear0,
-                            ksize=[1, 2, 2, 1],
-                            strides=[1, 2, 2, 1],
+                            ksize=[1, pooling[0], pooling[0], 1],
+                            strides=[1, pooling[0], pooling[0], 1],
                             padding='SAME',
                             name='pool0')
 
 
-                    kernel1 = tf.get_variable(
-                            'weights1',
-                            shape=[5, 5, 8, 64],
-                            initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
-                    biases1 = tf.get_variable(
-                            'biases1',
-                            shape=[64],
-                            initializer=tf.constant_initializer(0.0))
+                    pool_flat = tf.reshape(
+                            tensor=pool0,
+                            shape=[-1, (pool0.shape[1]*pool0.shape[2]*pool0.shape[3]).value])
+
+                    """with tf.device('/cpu:0'):
+                        kernel1 = tf.get_variable(
+                                'weights1',
+                                shape=[conv_kernel[1], conv_kernel[1], num_features[0], num_features[1]],
+                                initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                        biases1 = tf.get_variable(
+                                'biases1',
+                                shape=[num_features[1]]],
+                                initializer=tf.constant_initializer(0.0))
                     conv1 = tf.nn.conv2d(
                             input=pool0,
                             filter=kernel1,
@@ -92,27 +98,26 @@ def build_graph(
 
                     pool1 = tf.nn.max_pool(
                             value=conv_nonlinear1,
-                            ksize=[1, 2, 2, 1],
-                            strides=[1, 2, 2, 1],
+                            ksize=[1, pooling[1], pooling[1], 1],
+                            strides=[1, pooling[1], pooling[1], 1],
                             padding='SAME',
                             name='pool1')
 
 
                     pool_flat = tf.reshape(
                             tensor=pool1,
-                            shape=[-1, (pool1.shape[1]*pool1.shape[2]*pool1.shape[3]).value])
+                            shape=[-1, (pool1.shape[1]*pool1.shape[2]*pool1.shape[3]).value])"""
 
 
                     dim = pool_flat.get_shape()[1].value
-                    with tf.device('/cpu:0'):
-                        weights = tf.get_variable(
-                                'weights_dense',
-                                shape=[dim, 256],
-                                initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
-                        biases = tf.get_variable(
-                                'biases_dense',
-                                shape=[256],
-                                initializer=tf.constant_initializer(0.1))
+                    weights = tf.get_variable(
+                            'weights_dense',
+                            shape=[dim, fully_connected_size],
+                            initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    biases = tf.get_variable(
+                            'biases_dense',
+                            shape=[fully_connected_size],
+                            initializer=tf.constant_initializer(0.1))
                     dense = tf.nn.relu(tf.matmul(pool_flat, weights) + biases)
 
 
@@ -122,21 +127,22 @@ def build_graph(
                             training=True)
 
 
-                    with tf.device('/cpu:0'):
-                        weights = tf.get_variable(
-                                'weights_logits',
-                                shape=[256, num_classes],
-                                initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
-                        biases = tf.get_variable(
-                                'biases_logits',
-                                shape=[num_classes],
-                                initializer=tf.constant_initializer(0.1))
+                    weights = tf.get_variable(
+                            'weights_logits',
+                            shape=[fully_connected_size, num_classes],
+                            initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    biases = tf.get_variable(
+                            'biases_logits',
+                            shape=[num_classes],
+                            initializer=tf.constant_initializer(0.1))
                     logits = tf.matmul(dropout, weights) + biases
 
 
                     loss = tf.losses.softmax_cross_entropy(
                             onehot_labels=labels_tower,
                             logits=logits)
+
+                    tf.get_variable_scope().reuse_variables()
 
 
                     gradient = optimizer.compute_gradients(loss)
