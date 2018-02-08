@@ -31,7 +31,7 @@ def build_graph(
                 initializer=tf.constant_initializer(0),
                 trainable=False)
 
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr_initial)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr_initial*numdev)
 
         x = tf.placeholder(tf.float32, shape=[None, imgsize, imgsize, num_channels])
         y_ = tf.placeholder(tf.float32, shape=[None, num_classes])
