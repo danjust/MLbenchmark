@@ -37,6 +37,7 @@ tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 
 # Parameters for CNNs
 tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data, leave empty for synthetic data')
+tf.app.flags.DEFINE_string('train_dir', '/tmp/train', 'directory for logging, leave empty for synthetic data')
 tf.app.flags.DEFINE_integer('num_layers_cnn', 2, 'Number of convolution/pooling layers in CNN')
 tf.app.flags.DEFINE_integer('num_features', [16,64], 'Vector containing the number of features in each convolutional layer')
 tf.app.flags.DEFINE_integer('kernel_cnn', [5,3], 'Vector containing the kernelsize in each convolutional layer')
@@ -134,7 +135,8 @@ def main(_):
                 FLAGS.logstep_cnn,
                 FLAGS.num_gpu,
                 FLAGS.devlist,
-                FLAGS.data_dir)
+                FLAGS.data_dir,
+                FLAGS.train_dir)
         print("========================================\n")
         numdev=max(1,FLAGS.num_gpu)
         print("convolutional neural network, %d training steps: " \

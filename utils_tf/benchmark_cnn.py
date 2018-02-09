@@ -24,7 +24,8 @@ def benchmark_cnn(
         logstep,
         num_gpu,
         devlist,
-        data_dir):
+        data_dir,
+        train_dir):
 
     if devlist=='':
         if num_gpu==0:
@@ -48,7 +49,7 @@ def benchmark_cnn(
     total_batchsize = int(batchsize*len(devlist))
 
     # Generate the Graph
-    g, x, y_ , train_op, loss, accuracy = cnn_multidevice.build_graph(
+    g, x, y_ , train_op, loss, accuracy, training_summary = cnn_multidevice.build_graph(
             num_layers,
             num_features,
             kernelsize,
@@ -60,6 +61,7 @@ def benchmark_cnn(
             num_channels,
             num_classes,
             devlist)
+
 
     # Generate the dataset
     if gen_data==True:
@@ -75,6 +77,7 @@ def benchmark_cnn(
 
     with tf.Session(graph=g) as sess:
         sess.run(tf.global_variables_initializer())
+        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=30, max_queue=15)
         t_train = time.time()
         for i in range(numsteps):
             batch = np.random.randint(
@@ -83,12 +86,13 @@ def benchmark_cnn(
                     total_batchsize)
             img_batch = trainimg[batch,:,:]
             label_batch = trainlabel[batch,:]
-            _, loss_step[i] = sess.run([train_op,loss], feed_dict={x: img_batch, y_: label_batch})
+            _, loss_step[i], train_summ = sess.run([train_op,loss,training_summary], feed_dict={x: img_batch, y_: label_batch})
+            writer.add_summary(train_summ, i)
             if logstep > 0:
                 if i%logstep==0:
                     acc[int(i/logstep)] = sess.run(accuracy,feed_dict={x: testimg, y_: testlabel})
                     print("%.2f sec, step %d, loss = %.2f, accuracy = %.2f"
-                            %(time.time()-t_train, i, loss_step[i],acc[int(i/logstep)]))
+                            %(time.time()-t_train, i, loss_step[i], acc[int(i/logstep)]))
 
         timeUsed_train = time.time()-t_train
 

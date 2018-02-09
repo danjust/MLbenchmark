@@ -137,5 +137,6 @@ def build_graph(
         train_op = optimizer.apply_gradients(mean_gradient, global_step=global_step)
         correct_prediction = tf.equal(tower_predict, tower_labels)
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        training_summary = tf.summary.scalar("training_loss", loss)
 
-    return g, x, y_, train_op, loss, accuracy
+    return g, x, y_, train_op, loss, accuracy, training_summary
