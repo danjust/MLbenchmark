@@ -31,7 +31,14 @@ def build_graph(
                 initializer=tf.constant_initializer(0),
                 trainable=False)
 
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr_initial*numdev)
+        lr = numdev*tf.train.exponential_decay(
+                lr_initial,
+                global_step,
+                5000,
+                lr_decay,
+                staircase=True)
+
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
 
         x = tf.placeholder(tf.float32, shape=[None, imgsize, imgsize, num_channels])
         y_ = tf.placeholder(tf.float32, shape=[None, num_classes])
@@ -125,7 +132,6 @@ def build_graph(
 
                     tf.get_variable_scope().reuse_variables()
 
-
                     gradient = optimizer.compute_gradients(loss)
                     tower_gradients.append(gradient)
                     tower_predict.append(tf.argmax(logits,1))
@@ -137,6 +143,8 @@ def build_graph(
         train_op = optimizer.apply_gradients(mean_gradient, global_step=global_step)
         correct_prediction = tf.equal(tower_predict, tower_labels)
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        training_summary = tf.summary.scalar("training_loss", loss)
+        loss_summary = tf.summary.scalar("training_loss", loss)
+        accuracy_summary = tf.summary.scalar("training_accuracy", accuracy)
+        lr_summary = tf.summary.scalar("learning_rate", lr)
 
-    return g, x, y_, train_op, loss, accuracy, training_summary
+    return g, x, y_, train_op, loss_summary, accuracy_summary, lr_summary, accuracy

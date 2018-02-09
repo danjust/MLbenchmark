@@ -49,7 +49,7 @@ def benchmark_cnn(
     total_batchsize = int(batchsize*len(devlist))
 
     # Generate the Graph
-    g, x, y_ , train_op, loss, accuracy, training_summary = cnn_multidevice.build_graph(
+    g, x, y_, train_op, loss_summary, accuracy_summary, lr_summary, accuracy = cnn_multidevice.build_graph(
             num_layers,
             num_features,
             kernelsize,
@@ -72,12 +72,11 @@ def benchmark_cnn(
     elif gen_data==False:
         trainimg, trainlabel, testimg, testlabel = build_dataset.import_cifar(data_dir)
 
-    loss_step = np.empty([numsteps,1])
     acc = np.empty([numsteps,1])
 
     with tf.Session(graph=g) as sess:
         sess.run(tf.global_variables_initializer())
-        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=30, max_queue=15)
+        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60, max_queue=250)
         t_train = time.time()
         for i in range(numsteps):
             batch = np.random.randint(
@@ -86,13 +85,13 @@ def benchmark_cnn(
                     total_batchsize)
             img_batch = trainimg[batch,:,:]
             label_batch = trainlabel[batch,:]
-            _, loss_step[i], train_summ = sess.run([train_op,loss,training_summary], feed_dict={x: img_batch, y_: label_batch})
-            writer.add_summary(train_summ, i)
+            _, loss_summ, acc_summ, lr_summ, acc[i] = sess.run([train_op, loss_summary, accuracy_summary, lr_summary,accuracy], feed_dict={x: img_batch, y_: label_batch})
+            writer.add_summary(loss_summ, i)
+            writer.add_summary(acc_summ, i)
+            writer.add_summary(lr_summ, i)
             if logstep > 0:
                 if i%logstep==0:
-                    acc[int(i/logstep)] = sess.run(accuracy,feed_dict={x: testimg, y_: testlabel})
-                    print("%.2f sec, step %d, loss = %.2f, accuracy = %.2f"
-                            %(time.time()-t_train, i, loss_step[i], acc[int(i/logstep)]))
+                    print("%.2f sec, step %d: accuracy = %.2f" %(time.time()-t_train, i, acc[i]))
 
         timeUsed_train = time.time()-t_train
 
@@ -101,4 +100,4 @@ def benchmark_cnn(
         timeUsed_infer = time.time() - t_infer
         print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
 
-    return timeUsed_train, timeUsed_infer, loss_step
+    return timeUsed_train, timeUsed_infer
