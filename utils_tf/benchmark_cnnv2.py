@@ -86,29 +86,28 @@ def benchmark_cnn(
     tower_labels = []
     tower_loss = []
 
-    with tf.variable_scope(tf.get_variable_scope()):
-        for dev_ind in range(numdev):
-            dev = devlist[dev_ind]
-            print("device %s" % dev)
-            with tf.device(devlist[dev_ind]):
-                with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                    images,labels = next_batch
-                    loss, logits = cnn_multidevicev2.build_model(
-                            images,
-                            labels,
-                            num_layers,
-                            num_features,
-                            kernel_size,
-                            pooling_size,
-                            fully_connected_size,
-                            num_channels,
-                            num_classes)
-                    tf.get_variable_scope().reuse_variables()
+    for dev_ind in range(numdev):
+        dev = devlist[dev_ind]
+        print("device %s" % dev)
+        with tf.device(devlist[dev_ind]):
+            with tf.name_scope('tower_%d' % (dev_ind)) as scope:
+                images,labels = next_batch
+                loss, logits = cnn_multidevicev2.build_model(
+                        images,
+                        labels,
+                        num_layers,
+                        num_features,
+                        kernel_size,
+                        pooling_size,
+                        fully_connected_size,
+                        num_channels,
+                        num_classes)
+                tf.get_variable_scope().reuse_variables()
 
-                    gradient = optimizer.compute_gradients(loss)
-                    tower_gradients.append(gradient)
-                    tower_predict.append(tf.argmax(logits,1))
-                    tower_labels.append(tf.argmax(labels,1))
+                gradient = optimizer.compute_gradients(loss)
+                tower_gradients.append(gradient)
+                tower_predict.append(tf.argmax(logits,1))
+                tower_labels.append(tf.argmax(labels,1))
 
     tower_predict = tf.stack(tower_predict)
     tower_labels = tf.stack(tower_labels)

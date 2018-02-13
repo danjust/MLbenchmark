@@ -41,7 +41,7 @@ def build_model(
                     strides=[1,1,1,1],
                     padding='SAME')
 
-            conv_nonlinear = tf.nn.relu(tf.nn.bias_add(conv, biases),name=scope.name)
+            conv_nonlinear = tf.nn.relu(tf.nn.bias_add(conv, biases), name=scope.name)
 
         pool = tf.nn.max_pool(
                 value=conv_nonlinear,
@@ -66,7 +66,7 @@ def build_model(
                 'biases_dense',
                 shape=[fully_connected_size],
                 initializer=tf.constant_initializer(0.1))
-        dense = tf.nn.relu(tf.matmul(pool_flat, weights) + biases,name=scope.name)
+        dense = tf.nn.relu(tf.matmul(pool_flat, weights) + biases, name=scope.name)
 
 
     dropout = tf.layers.dropout(
@@ -83,7 +83,7 @@ def build_model(
                 'biases_logits',
                 shape=[num_classes],
                 initializer=tf.constant_initializer(0.1))
-        logits = tf.add(tf.matmul(dropout, weights), biases,name=scope.name)
+        logits = tf.add(tf.matmul(dropout, weights), biases, name=scope.name)
 
 
     loss = tf.losses.softmax_cross_entropy(
