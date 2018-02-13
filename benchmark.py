@@ -39,7 +39,7 @@ tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
 tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data, leave empty for synthetic data')
 tf.app.flags.DEFINE_string('train_dir', '/tmp/train', 'directory for logging, leave empty for synthetic data')
 tf.app.flags.DEFINE_integer('num_layers_cnn', 2, 'Number of convolution/pooling layers in CNN')
-tf.app.flags.DEFINE_integer('num_features', [16,64], 'Vector containing the number of features in each convolutional layer')
+tf.app.flags.DEFINE_integer('num_features', [16,64,128], 'Vector containing the number of features in each convolutional layer')
 tf.app.flags.DEFINE_integer('kernel_cnn', [5,3], 'Vector containing the kernelsize in each convolutional layer')
 tf.app.flags.DEFINE_integer('pooling_cnn', [2,2], 'Vector containing the size of max pooling in each pooling layer')
 tf.app.flags.DEFINE_integer('fully_connected_size', 256, 'Vector containing the size of max pooling in each pooling layer')
@@ -47,9 +47,9 @@ tf.app.flags.DEFINE_float('lr_initial', 0.0005, 'Initial learning rate')
 tf.app.flags.DEFINE_float('lr_decay', 0.95, 'Learning rate decay')
 tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images if synthetic data')
 tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images if synthetic data')
-tf.app.flags.DEFINE_integer('logstep_cnn', 10, 'write log at these steps (0 to disable logging)')
+tf.app.flags.DEFINE_integer('logstep_cnn', 500, 'write log at these steps (0 to disable logging)')
 tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
-tf.app.flags.DEFINE_integer('numsteps_cnn', 500, 'Number of steps to train CNN')
+tf.app.flags.DEFINE_integer('numsteps_cnn', 10000, 'Number of steps to train CNN')
 tf.app.flags.DEFINE_integer('batchsize_cnn', 128, 'Batch size for training CNN')
 
 FLAGS = tf.app.flags.FLAGS
@@ -119,7 +119,7 @@ def main(_):
     if FLAGS.testCNN:
         print("========================================\n")
         print("Start training convolutional neural network")
-        timeUsed_train, timeUsed_infer, _ = benchmark_cnn.benchmark_cnn(
+        timeUsed_train, timeUsed_infer = benchmark_cnn.benchmark_cnn(
                 FLAGS.num_layers_cnn,
                 FLAGS.num_features,
                 FLAGS.kernel_cnn,

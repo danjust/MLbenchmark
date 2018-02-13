@@ -5,6 +5,7 @@ a synthetic dataset
 
 import tensorflow as tf
 import numpy as np
+from tensorflow.python.client import timeline
 import time
 from utils_tf.utils_cnn import cnn_multidevice, build_dataset
 
@@ -76,6 +77,8 @@ def benchmark_cnn(
 
     with tf.Session(graph=g) as sess:
         sess.run(tf.global_variables_initializer())
+        options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60, max_queue=250)
         t_train = time.time()
         for i in range(numsteps):
@@ -85,13 +88,22 @@ def benchmark_cnn(
                     total_batchsize)
             img_batch = trainimg[batch,:,:]
             label_batch = trainlabel[batch,:]
-            _, loss_summ, acc_summ, lr_summ, acc[i] = sess.run([train_op, loss_summary, accuracy_summary, lr_summary,accuracy], feed_dict={x: img_batch, y_: label_batch})
+            _, loss_summ, acc_summ, lr_summ, acc[i] = sess.run(
+                    [train_op, loss_summary, accuracy_summary, lr_summary,accuracy],
+                    feed_dict={x: img_batch, y_: label_batch},
+                    options=options,
+                    run_metadata=run_metadata)
             writer.add_summary(loss_summ, i)
             writer.add_summary(acc_summ, i)
             writer.add_summary(lr_summ, i)
             if logstep > 0:
                 if i%logstep==0:
                     print("%.2f sec, step %d: accuracy = %.2f" %(time.time()-t_train, i, acc[i]))
+
+            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+            chrome_trace = fetched_timeline.generate_chrome_trace_format()
+            with open('/Users/djustus/timeline_02_step_%d.json' % i, 'w') as f:
+                f.write(chrome_trace)
 
         timeUsed_train = time.time()-t_train
 

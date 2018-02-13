@@ -1,0 +1,135 @@
+"""Builds a convolutional neural network with a flexible number of
+convolutional and pooling layers and runs a benchmark by training it on
+a synthetic dataset
+"""
+
+import tensorflow as tf
+import numpy as np
+import time
+from utils_tf.utils_cnn import cnn_multidevicev2, build_datasetv2
+
+def benchmark_cnn(
+        num_layers,
+        num_features,
+        kernel_size,
+        pooling_size,
+        fully_connected_size,
+        lr_initial,
+        lr_decay,
+        num_trainimg,
+        num_testimg,
+        imgsize,
+        numsteps,
+        batchsize,
+        logstep,
+        num_gpu,
+        devlist,
+        data_dir,
+        train_dir):
+
+    if devlist=='':
+        if num_gpu==0:
+            devlist = ['/cpu:0']
+        else:
+            devlist = ['/gpu:%d' %i for i in range(num_gpu)]
+    else:
+        devlist = devlist.split(',')
+
+    numdev = len(devlist)
+
+    if data_dir=='':
+        gen_data=True
+        num_channels=1
+        num_classes=2
+    else:
+        gen_data=False
+        imgsize=32
+        num_channels=3
+        num_classes=10
+
+
+    # Generate the dataset and build the queue
+    if gen_data==True:
+        trainimg, trainlabel, testimg, testlabel = build_datasetv2.build_dataset(
+                num_trainimg,
+                num_testimg,
+                imgsize)
+    elif gen_data==False:
+        queue, enqueue_op, testimg, testlabel = build_datasetv2.import_cifar(data_dir)
+
+
+    # Build the queuerunner
+    qr = tf.train.QueueRunner(queue, [enqueue_op])
+
+
+    # Build the model
+    with tf.variable_scope(tf.get_variable_scope()):
+        for dev_ind in range(numdev):
+            dev = devlist[dev_ind]
+            print("device %s" % dev)
+            with tf.device(devlist[dev_ind]):
+                with tf.name_scope('tower_%d' % (dev_ind)) as scope:
+                    images,labels = queue.dequeue_many(batchsize)
+                    loss = cnn_multidevicev2.build_model(
+                            images,
+                            labels,
+                            num_layers,
+                            num_features,
+                            kernel_size,
+                            pooling_size,
+                            fully_connected_size,
+                            num_channels,
+                            num_classes)
+                    tf.get_variable_scope().reuse_variables()
+
+                    gradient = optimizer.compute_gradients(loss)
+                    tower_gradients.append(gradient)
+                    tower_predict.append(tf.argmax(logits,1))
+                    tower_labels.append(tf.argmax(labels_split[dev_ind],1))
+
+    tower_predict = tf.stack(tower_predict)
+    tower_labels = tf.stack(tower_labels)
+    mean_gradient = average_gradients.average_gradients(tower_gradients)
+    train_op = optimizer.apply_gradients(mean_gradient, global_step=global_step)
+    correct_prediction = tf.equal(tower_predict, tower_labels)
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+    loss_summary = tf.summary.scalar("training_loss", loss)
+    accuracy_summary = tf.summary.scalar("training_accuracy", accuracy)
+    lr_summary = tf.summary.scalar("learning_rate", lr)
+
+
+
+    lr = numdev*tf.train.exponential_decay(
+            lr_initial,
+            global_step,
+            5000,
+            lr_decay,
+            staircase=True)
+
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
+
+
+    acc = np.empty([numsteps,1])
+    with tf.Session(graph=g) as sess:
+        sess.run(tf.global_variables_initializer())
+        coord = tf.train.Coordinator()
+        enqueue_threads = qr.create_threads(sess, coord=coord, start=True)
+        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
+        t_train = time.time()
+        for i in range(numsteps):
+            _, loss_sum, acc_sum, lr_sum = sess.run([train_op, loss_summary, accuracy_summary, lr_summary])
+            writer.add_summary(loss_summ, i)
+            writer.add_summary(acc_summ, i)
+            writer.add_summary(lr_summ, i)
+            if logstep > 0:
+                if i%logstep==0:
+                    print("%.2f sec, step %d: accuracy = %.2f" %(time.time()-t_train, i, acc[i]))
+
+        timeUsed_train = time.time()-t_train
+
+        t_infer = time.time()
+        acc_validation = sess.run(accuracy,feed_dict={x: testimg, y_: testlabel})
+        timeUsed_infer = time.time() - t_infer
+        print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
+
+    return timeUsed_train, timeUsed_infer
