@@ -143,10 +143,10 @@ def benchmark_cnn(
                 if i%logstep==0:
                     print("%.2f sec, step %d" %(time.time()-t_train, i))
 
-            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
-            chrome_trace = fetched_timeline.generate_chrome_trace_format()
-            with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
-                f.write(chrome_trace)
+                    fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+                    chrome_trace = fetched_timeline.generate_chrome_trace_format()
+                    with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
+                        f.write(chrome_trace)
 
         timeUsed_train = time.time()-t_train
 
