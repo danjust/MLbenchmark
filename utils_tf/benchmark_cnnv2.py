@@ -128,18 +128,22 @@ def benchmark_cnn(
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
         t_train = time.time()
         for i in range(numsteps):
-            _, loss_summ, acc_summ, lr_summ = sess.run([train_op, loss_summary, accuracy_summary, lr_summary])
+            _, loss_summ, acc_summ, lr_summ = sess.run(
+                    [train_op,
+                    loss_summary,
+                    accuracy_summary,
+                    lr_summary])
             writer.add_summary(loss_summ, i)
             writer.add_summary(acc_summ, i)
             writer.add_summary(lr_summ, i)
             if logstep > 0:
                 if i%logstep==0:
-                    print("%.2f sec, step %d: accuracy = %.2f" %(time.time()-t_train, i, acc[i]))
+                    print("%.2f sec, step %d" %(time.time()-t_train, i))
 
         timeUsed_train = time.time()-t_train
 
         t_infer = time.time()
-        acc_validation = sess.run(accuracy,feed_dict={x: testimg, y_: testlabel})
+        acc_validation = sess.run(accuracy)
         timeUsed_infer = time.time() - t_infer
         print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
 
