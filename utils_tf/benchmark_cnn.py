@@ -102,7 +102,7 @@ def benchmark_cnn(
 
             fetched_timeline = timeline.Timeline(run_metadata.step_stats)
             chrome_trace = fetched_timeline.generate_chrome_trace_format()
-            with open('/Users/djustus/timeline_02_step_%d.json' % i, 'w') as f:
+            with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
                 f.write(chrome_trace)
 
         timeUsed_train = time.time()-t_train

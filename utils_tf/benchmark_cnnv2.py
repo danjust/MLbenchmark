@@ -6,7 +6,7 @@ a synthetic dataset
 import tensorflow as tf
 import numpy as np
 import time
-from utils_tf.utils_cnn import cnn_multidevicev2, build_datasetv2
+from utils_tf.utils_cnn import cnn_multidevicev2, build_datasetv2, average_gradients
 
 def benchmark_cnn(
         num_layers,
@@ -55,22 +55,45 @@ def benchmark_cnn(
                 num_testimg,
                 imgsize)
     elif gen_data==False:
-        queue, enqueue_op, testimg, testlabel = build_datasetv2.import_cifar(data_dir)
+        train_data, test_data = build_datasetv2.import_cifar(data_dir)
+
+    train_data = train_data.repeat()
+    train_data = train_data.shuffle(10*batchsize)
+    train_batch = train_data.batch(batchsize)
+    iterator = train_batch.make_one_shot_iterator()
+    next_batch = iterator.get_next()
 
 
-    # Build the queuerunner
-    qr = tf.train.QueueRunner(queue, [enqueue_op])
+    # Set learning rate and build optimizer
+    global_step = tf.get_variable(
+        'global_step', [],
+        initializer=tf.constant_initializer(0),
+        trainable=False)
+
+    lr = numdev*tf.train.exponential_decay(
+            lr_initial,
+            global_step,
+            5000,
+            lr_decay,
+            staircase=True)
+
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
 
 
     # Build the model
+    tower_gradients = []
+    tower_predict = []
+    tower_labels = []
+    tower_loss = []
+
     with tf.variable_scope(tf.get_variable_scope()):
         for dev_ind in range(numdev):
             dev = devlist[dev_ind]
             print("device %s" % dev)
             with tf.device(devlist[dev_ind]):
                 with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                    images,labels = queue.dequeue_many(batchsize)
-                    loss = cnn_multidevicev2.build_model(
+                    images,labels = next_batch
+                    loss, logits = cnn_multidevicev2.build_model(
                             images,
                             labels,
                             num_layers,
@@ -85,7 +108,7 @@ def benchmark_cnn(
                     gradient = optimizer.compute_gradients(loss)
                     tower_gradients.append(gradient)
                     tower_predict.append(tf.argmax(logits,1))
-                    tower_labels.append(tf.argmax(labels_split[dev_ind],1))
+                    tower_labels.append(tf.argmax(labels,1))
 
     tower_predict = tf.stack(tower_predict)
     tower_labels = tf.stack(tower_labels)
@@ -98,26 +121,13 @@ def benchmark_cnn(
     lr_summary = tf.summary.scalar("learning_rate", lr)
 
 
-
-    lr = numdev*tf.train.exponential_decay(
-            lr_initial,
-            global_step,
-            5000,
-            lr_decay,
-            staircase=True)
-
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=lr)
-
-
     acc = np.empty([numsteps,1])
-    with tf.Session(graph=g) as sess:
+    with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        coord = tf.train.Coordinator()
-        enqueue_threads = qr.create_threads(sess, coord=coord, start=True)
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
         t_train = time.time()
         for i in range(numsteps):
-            _, loss_sum, acc_sum, lr_sum = sess.run([train_op, loss_summary, accuracy_summary, lr_summary])
+            _, loss_summ, acc_summ, lr_summ = sess.run([train_op, loss_summary, accuracy_summary, lr_summary])
             writer.add_summary(loss_summ, i)
             writer.add_summary(acc_summ, i)
             writer.add_summary(lr_summ, i)

@@ -53,12 +53,10 @@ def unpickle(file):
     return dict
 
 def import_cifar(data_dir):
-    img = np.empty([50000,3072])
-    lbl = np.empty(50000)
-    trainlabel = np.zeros([50000,10])
+    img = np.empty([50000,3072],dtype=np.float32)
+    lbl = np.empty(50000,dtype=np.int16)
+    trainlabel = np.zeros([50000,10],dtype=np.int16)
 
-    # Build queue
-    queue = tf.RandomShuffleQueue(capacity=50000,min_after_dequeue=10000, dtypes=[tf.float32,tf.int16],shapes=[[50000,32,32,3],[50000,10]])
     for i in range(1,6):
         filename = os.path.join(data_dir, 'data_batch_%d' % i)
         d = unpickle(filename)
@@ -69,10 +67,7 @@ def import_cifar(data_dir):
     trainimg = np.transpose(trainimg, (0, 2, 3, 1))
     trainlabel[np.arange(50000), np.int8(lbl)] = 1
 
-    # enqueue dataset
-    enqueue_op = queue.enqueue([trainimg,trainlabel])
-
-
+    train_data=tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
 
 
     testlabel = np.zeros([10000,10])
@@ -84,4 +79,6 @@ def import_cifar(data_dir):
     testimg = np.transpose(testimg, (0, 2, 3, 1))
     testlabel[np.arange(10000), np.int8(lbl)] = 1
 
-    return queue, enqueue_op, testimg, testlabel
+    test_data=tf.data.Dataset.from_tensor_slices((testimg, testlabel))
+
+    return train_data, test_data

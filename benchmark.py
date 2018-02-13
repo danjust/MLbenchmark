@@ -6,148 +6,149 @@ import tensorflow as tf
 from  utils_tf import benchmark_matmul
 from  utils_tf import benchmark_conv
 from  utils_tf import benchmark_rnn
-from  utils_tf import benchmark_cnn
+from  utils_tf import benchmark_cnnv2
 
+import argparse
+parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
 
 # Benchmarks to perform
-tf.app.flags.DEFINE_bool('testMatMul', False, 'Benchmark matrix multiplication')
-tf.app.flags.DEFINE_bool('testConv', False, 'Benchmark 2D convolution')
-tf.app.flags.DEFINE_bool('testRNN', False, 'Benchmark recurrent neural networks')
-tf.app.flags.DEFINE_bool('testCNN', False, 'Benchmark a cnn training on sythetic data')
+parser.add_argument('--testMatMul', type=bool, default=False, help='Benchmark matrix multiplication')
+parser.add_argument('--testConv', type=bool, default=False, help='Benchmark 2D convolution')
+parser.add_argument('--testRNN', type=bool, default=False, help='Benchmark recurrent neural networks')
+parser.add_argument('--testCNN', type=bool, default=False, help='Benchmark a cnn training')
 
 # General parameters
-tf.app.flags.DEFINE_integer('num_gpu', 1, 'Number of GPUs to use')
-tf.app.flags.DEFINE_string('devlist', '', 'List of devices to use, overwrites num_gpu if set')
-tf.app.flags.DEFINE_string('datatype', 'float32', 'Datatype')
+parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
+parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
+parser.add_argument('--datatype', type=str, default='float32', help='Datatype')
 
 # Parameters for matrix multiplication / convolution
-tf.app.flags.DEFINE_integer('iter', 10, 'Number of iterations')
-tf.app.flags.DEFINE_integer('matsize', 1024, 'Size of each matrix for benchmark')
-tf.app.flags.DEFINE_integer('kernelsize', 15, 'Size of kernel for benchmarking convolution')
+parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
+parser.add_argument('--matsize', type=int, default=1024, help='Size of each matrix for benchmark')
+parser.add_argument('--kernelsize', type=int, default=15, help='Size of kernel for benchmarking convolution')
+parser.add_argument('--lr_initial', type=float, default=0.0005, help='Initial learning rate')
+parser.add_argument('--lr_decay', type=float, default=0.95, help='Learning rate decay')
 
 # Parameters for RNNs
-tf.app.flags.DEFINE_string('rnn_type', 'rnn', 'Type of RNN (rnn or lstm)')
-tf.app.flags.DEFINE_integer('seq_length', 50, 'Length of sequence')
-tf.app.flags.DEFINE_integer('batch_size_rnn', 64, 'Batch size')
-tf.app.flags.DEFINE_integer('num_samples', 10000, 'Total number of samples of length seq_length')
-tf.app.flags.DEFINE_integer('num_units', 32, 'Number of hidden units')
-tf.app.flags.DEFINE_integer('num_classes', 10, 'Number of target classes')
-tf.app.flags.DEFINE_integer('learning_rate', 0.001, 'Learning rate')
-tf.app.flags.DEFINE_integer('iter_rnn', 10, 'Number of iterations for RNNs')
+parser.add_argument('--rnn_type', type=str, default='rnn', help='Type of RNN (rnn or lstm)')
+parser.add_argument('--seq_length', type=int, default=50, help='Length of sequence')
+parser.add_argument('--batch_size_rnn', type=int, default=64, help='Batch size')
+parser.add_argument('--num_samples', type=int, default=10000, help='Total number of samples of length seq_length')
+parser.add_argument('--num_units', type=int, default=32, help='Number of hidden units')
+parser.add_argument('--num_classes', type=int, default=10, help='Number of target classes')
+parser.add_argument('--iter_rnn', type=int, default=10, help='Number of iterations for RNNs')
 
 # Parameters for CNNs
-tf.app.flags.DEFINE_string('data_dir', '', 'directory of image data, leave empty for synthetic data')
-tf.app.flags.DEFINE_string('train_dir', '/tmp/train', 'directory for logging, leave empty for synthetic data')
-tf.app.flags.DEFINE_integer('num_layers_cnn', 2, 'Number of convolution/pooling layers in CNN')
-tf.app.flags.DEFINE_integer('num_features', [16,64,128], 'Vector containing the number of features in each convolutional layer')
-tf.app.flags.DEFINE_integer('kernel_cnn', [5,3], 'Vector containing the kernelsize in each convolutional layer')
-tf.app.flags.DEFINE_integer('pooling_cnn', [2,2], 'Vector containing the size of max pooling in each pooling layer')
-tf.app.flags.DEFINE_integer('fully_connected_size', 256, 'Vector containing the size of max pooling in each pooling layer')
-tf.app.flags.DEFINE_float('lr_initial', 0.0005, 'Initial learning rate')
-tf.app.flags.DEFINE_float('lr_decay', 0.95, 'Learning rate decay')
-tf.app.flags.DEFINE_integer('num_trainimg', 1000000, 'Number of training images if synthetic data')
-tf.app.flags.DEFINE_integer('num_testimg', 10000, 'Number of validation images if synthetic data')
-tf.app.flags.DEFINE_integer('logstep_cnn', 500, 'write log at these steps (0 to disable logging)')
-tf.app.flags.DEFINE_integer('imgsize', 50, 'Size of (square) images')
-tf.app.flags.DEFINE_integer('numsteps_cnn', 10000, 'Number of steps to train CNN')
-tf.app.flags.DEFINE_integer('batchsize_cnn', 128, 'Batch size for training CNN')
+parser.add_argument('--data_dir', type=str, default='', help='directory of image data, leave empty for synthetic data')
+parser.add_argument('--train_dir', type=str, default='/tmp/train', help='directory for logging')
+parser.add_argument('--num_layers_cnn', type=int, default=3, help='Number of convolution/pooling layers in CNN')
+parser.add_argument('--num_features', type=int, nargs='+', default=[16,64,128], help='Vector containing the number of features in each convolutional layer')
+parser.add_argument('--kernel_cnn', type=int, nargs='+', default=[5,3,3], help='Vector containing the kernelsize in each convolutional layer')
+parser.add_argument('--pooling_cnn', type=int, nargs='+', default=[2,2,2], help='Vector containing the size of max pooling in each pooling layer')
+parser.add_argument('--fully_connected_size', type=int, default=256, help='Number of neurons in fully connected layer')
+parser.add_argument('--num_trainimg', type=int, default=1000000, help='Number of training images if synthetic data')
+parser.add_argument('--num_testimg', type=int, default=10000, help='Number of validation images if synthetic data')
+parser.add_argument('--logstep_cnn', type=int, default=500, help='write log at these steps (0 to disable logging)')
+parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
+parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
+parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
 
-FLAGS = tf.app.flags.FLAGS
+args = parser.parse_args()
 
 
 def main(_):
-    if FLAGS.testMatMul:
-        ops = (FLAGS.matsize**3
-                + (FLAGS.matsize-1)*FLAGS.matsize**2)
+    if args.testMatMul:
+        ops = (args.matsize**3
+                + (args.matsize-1)*args.matsize**2)
                 # matsize**3 multiplications,
                 # (matsize-1)*matsize**2 additions
         print("========================================\n")
         print("Start matrix multiplication")
         timeUsed = benchmark_matmul.benchmark_matmul(
-                FLAGS.matsize,
-                FLAGS.iter,
-                FLAGS.num_gpu,
-                FLAGS.devlist,
-                FLAGS.datatype)
+                args.matsize,
+                args.iter,
+                args.num_gpu,
+                args.devlist,
+                args.datatype)
         print("\n%d x %d matrix multiplication (%s): %.2f GFLOPS (%.2f matrices per sec)"
-                % (FLAGS.matsize,
-                FLAGS.matsize,
-                FLAGS.datatype,
+                % (args.matsize,
+                args.matsize,
+                args.datatype,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
-    if FLAGS.testConv:
-        ops = ((FLAGS.matsize-FLAGS.kernelsize+1)**2
-                * (FLAGS.kernelsize**3
-                + (FLAGS.kernelsize-1)*FLAGS.kernelsize**2))
+    if args.testConv:
+        ops = ((args.matsize-args.kernelsize+1)**2
+                * (args.kernelsize**3
+                + (args.kernelsize-1)*args.kernelsize**2))
                 # (matsize.kernelsize+1)**2 GEMMs
         print("========================================\n")
         print("Start convolution")
         timeUsed = benchmark_conv.benchmark_conv(
-                FLAGS.matsize,
-                FLAGS.kernelsize,
-                FLAGS.iter,
-                FLAGS.num_gpu,
-                FLAGS.devlist,
-                FLAGS.datatype)
+                args.matsize,
+                args.kernelsize,
+                args.iter,
+                args.num_gpu,
+                args.devlist,
+                args.datatype)
         print("\n%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
-                % (FLAGS.matsize,
-                FLAGS.kernelsize,
-                FLAGS.datatype,
+                % (args.matsize,
+                args.kernelsize,
+                args.datatype,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
-    if FLAGS.testRNN:
+    if args.testRNN:
         print("========================================\n")
-        print("Start recurrent neural network (%s)" %FLAGS.rnn_type)
+        print("Start recurrent neural network (%s)" %args.rnn_type)
         timeUsed = benchmark_rnn.benchmark_rnn(
-                FLAGS.rnn_type,
-                FLAGS.seq_length,
-                FLAGS.batch_size_rnn,
-                FLAGS.num_samples,
-                FLAGS.num_units,
-                FLAGS.num_classes,
-                FLAGS.learning_rate,
-                FLAGS.iter_rnn,
-                FLAGS.num_gpu,
-                FLAGS.devlist,
-                FLAGS.datatype)
+                args.rnn_type,
+                args.seq_length,
+                args.batch_size_rnn,
+                args.num_samples,
+                args.num_units,
+                args.num_classes,
+                args.lr_initial,
+                args.iter_rnn,
+                args.num_gpu,
+                args.devlist,
+                args.datatype)
         print("\n%s:  %.2f steps per sec"
-                % (FLAGS.rnn_type,
+                % (args.rnn_type,
                 1/timeUsed))
 
-    if FLAGS.testCNN:
+    if args.testCNN:
         print("========================================\n")
         print("Start training convolutional neural network")
-        timeUsed_train, timeUsed_infer = benchmark_cnn.benchmark_cnn(
-                FLAGS.num_layers_cnn,
-                FLAGS.num_features,
-                FLAGS.kernel_cnn,
-                FLAGS.pooling_cnn,
-                FLAGS.fully_connected_size,
-                FLAGS.lr_initial,
-                FLAGS.lr_decay,
-                FLAGS.num_trainimg,
-                FLAGS.num_testimg,
-                FLAGS.imgsize,
-                FLAGS.numsteps_cnn,
-                FLAGS.batchsize_cnn,
-                FLAGS.logstep_cnn,
-                FLAGS.num_gpu,
-                FLAGS.devlist,
-                FLAGS.data_dir,
-                FLAGS.train_dir)
+        timeUsed_train, timeUsed_infer = benchmark_cnnv2.benchmark_cnn(
+                args.num_layers_cnn,
+                args.num_features,
+                args.kernel_cnn,
+                args.pooling_cnn,
+                args.fully_connected_size,
+                args.lr_initial,
+                args.lr_decay,
+                args.num_trainimg,
+                args.num_testimg,
+                args.imgsize,
+                args.numsteps_cnn,
+                args.batchsize_cnn,
+                args.logstep_cnn,
+                args.num_gpu,
+                args.devlist,
+                args.data_dir,
+                args.train_dir)
         print("========================================\n")
-        numdev=max(1,FLAGS.num_gpu)
+        numdev=max(1,args.num_gpu)
         print("convolutional neural network, %d training steps: " \
                 "%.2f steps per sec (%2.f images per sec) \n" \
                 "%d images inferred: %.2f sec (%.2f images per sec)"
-                % (FLAGS.numsteps_cnn,
-                FLAGS.numsteps_cnn/timeUsed_train,
-                FLAGS.numsteps_cnn*FLAGS.batchsize_cnn*numdev/timeUsed_train,
-                FLAGS.num_testimg,
+                % (args.numsteps_cnn,
+                args.numsteps_cnn/timeUsed_train,
+                args.numsteps_cnn*args.batchsize_cnn*numdev/timeUsed_train,
+                args.num_testimg,
                 timeUsed_infer,
-                FLAGS.num_testimg/timeUsed_infer
+                args.num_testimg/timeUsed_infer
                 ))
 
 if __name__ == '__main__':

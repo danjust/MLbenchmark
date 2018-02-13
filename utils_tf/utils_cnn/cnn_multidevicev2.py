@@ -5,7 +5,6 @@
 """
 
 import tensorflow as tf
-from utils_tf.utils_cnn import average_gradients
 
 def build_model(
         images,
@@ -91,4 +90,4 @@ def build_model(
             onehot_labels=labels,
             logits=logits)
 
-    return loss
+    return loss, logits
