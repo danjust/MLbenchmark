@@ -51,7 +51,7 @@ def benchmark_cnn(
 
     # Generate the dataset and build the queue
     if gen_data==True:
-        trainimg, trainlabel, testimg, testlabel = build_datasetv2.build_dataset(
+        train_data, test_data = build_datasetv2.build_dataset(
                 num_trainimg,
                 num_testimg,
                 imgsize)

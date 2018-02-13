@@ -18,6 +18,8 @@ def build_dataset(num_trainimg,num_testimg,imgsize):
             trainimg[i,line,:,0] = 1
             trainlabel[i,1] = 1
 
+    train_data=tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
+
     testimg = np.zeros([num_testimg,imgsize,imgsize,1]).astype(np.float32)
     testlabel = np.zeros([num_testimg,2]).astype(np.int16)
     for i in range(num_testimg):
@@ -30,7 +32,9 @@ def build_dataset(num_trainimg,num_testimg,imgsize):
             testimg[i,line,:,0] = 1
             testlabel[i,1] = 1
 
-    return trainimg, trainlabel, testimg, testlabel
+    test_data=tf.data.Dataset.from_tensor_slices((testimg, testlabel))
+
+    return train_data, test_data
 
 
 def unpickle3(file):
