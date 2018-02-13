@@ -121,7 +121,9 @@ def benchmark_cnn(
 
 
     acc = np.empty([numsteps,1])
-    with tf.Session() as sess:
+    with tf.Session(config=tf.ConfigProto(
+            allow_soft_placement=True,
+            log_device_placement=True)) as sess:
         sess.run(tf.global_variables_initializer())
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
         t_train = time.time()
