@@ -131,11 +131,13 @@ def benchmark_cnn(
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
         t_train = time.time()
         for i in range(numsteps):
-            _, loss_summ, acc_summ, lr_summ = sess.run(
-                    [train_op,
-                    loss_summary,
-                    accuracy_summary,
-                    lr_summary])
+            _, loss_summ, acc_summ, lr_summ = sess.run([
+                            train_op,
+                            loss_summary,
+                            accuracy_summary,
+                            lr_summary],
+                    options=options,
+                    run_metadata=run_metadata)
             writer.add_summary(loss_summ, i)
             writer.add_summary(acc_summ, i)
             writer.add_summary(lr_summ, i)
