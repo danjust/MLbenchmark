@@ -6,6 +6,7 @@ a synthetic dataset
 import tensorflow as tf
 import numpy as np
 import time
+from tensorflow.python.client import timeline
 from utils_tf.utils_cnn import cnn_multidevicev2, build_datasetv2, average_gradients
 
 def benchmark_cnn(
@@ -125,6 +126,8 @@ def benchmark_cnn(
             allow_soft_placement=True,
             log_device_placement=True)) as sess:
         sess.run(tf.global_variables_initializer())
+        options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
         t_train = time.time()
         for i in range(numsteps):
@@ -139,6 +142,11 @@ def benchmark_cnn(
             if logstep > 0:
                 if i%logstep==0:
                     print("%.2f sec, step %d" %(time.time()-t_train, i))
+
+            fetched_timeline = timeline.Timeline(run_metadata.step_stats)
+            chrome_trace = fetched_timeline.generate_chrome_trace_format()
+            with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
+                f.write(chrome_trace)
 
         timeUsed_train = time.time()-t_train
 
