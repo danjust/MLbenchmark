@@ -49,6 +49,7 @@ parser.add_argument('--fully_connected_size', type=int, default=256, help='Numbe
 parser.add_argument('--num_trainimg', type=int, default=1000000, help='Number of training images if synthetic data')
 parser.add_argument('--num_testimg', type=int, default=10000, help='Number of validation images if synthetic data')
 parser.add_argument('--logstep_cnn', type=int, default=500, help='write log at these steps (0 to disable logging)')
+parser.add_argument('--trackingstep_cnn', type=int, default=5000, help='write tracking at these steps (0 to disable logging)')
 parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
 parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
 parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
@@ -134,6 +135,7 @@ def main(_):
                 args.numsteps_cnn,
                 args.batchsize_cnn,
                 args.logstep_cnn,
+                args.trackingstep_cnn,
                 args.num_gpu,
                 args.devlist,
                 args.data_dir,

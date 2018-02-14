@@ -23,6 +23,7 @@ def benchmark_cnn(
         numsteps,
         batchsize,
         logstep,
+        trackingstep,
         num_gpu,
         devlist,
         data_dir,
@@ -50,19 +51,20 @@ def benchmark_cnn(
 
 
     # Generate the dataset and build the queue
-    if gen_data==True:
-        train_data, test_data = build_datasetv2.build_dataset(
-                num_trainimg,
-                num_testimg,
-                imgsize)
-    elif gen_data==False:
-        train_data, test_data = build_datasetv2.import_cifar(data_dir)
+    with rf.device('/cpu:0'):
+        if gen_data==True:
+            train_data, test_data = build_datasetv2.build_dataset(
+                    num_trainimg,
+                    num_testimg,
+                    imgsize)
+        elif gen_data==False:
+            train_data, test_data = build_datasetv2.import_cifar(data_dir)
 
-    train_data = train_data.repeat()
-    train_data = train_data.shuffle(10*batchsize)
-    train_batch = train_data.batch(batchsize)
-    iterator = train_batch.make_one_shot_iterator()
-    next_batch = iterator.get_next()
+        train_data = train_data.repeat()
+        train_data = train_data.shuffle(5*batchsize)
+        train_batch = train_data.batch(batchsize)
+        iterator = train_batch.make_one_shot_iterator()
+        next_batch = iterator.get_next()
 
 
     # Set learning rate and build optimizer
@@ -122,11 +124,12 @@ def benchmark_cnn(
                     [train_op, loss_summary],
                     options=options,
                     run_metadata=run_metadata)
-            writer.add_summary(loss_summ, i)
+
             if logstep > 0:
                 if i%logstep==0:
+                    writer.add_summary(loss_summ, i)
+                if i%(trackingstep)==0:
                     print("%.2f sec, step %d" %(time.time()-t_train, i))
-
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
                     with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
@@ -135,8 +138,8 @@ def benchmark_cnn(
         timeUsed_train = time.time()-t_train
 
         t_infer = time.time()
-        acc_validation = sess.run(accuracy)
+        loss_validation = sess.run(loss)
         timeUsed_infer = time.time() - t_infer
-        print("After %d steps: accuracy = %.2f" %(numsteps, acc_validation))
+        print("After %d steps: loss = %.2f" %(numsteps, loss_validation))
 
     return timeUsed_train, timeUsed_infer
