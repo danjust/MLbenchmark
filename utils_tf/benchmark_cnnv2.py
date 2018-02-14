@@ -83,9 +83,6 @@ def benchmark_cnn(
 
     # Build the model
     tower_gradients = []
-    tower_predict = []
-    tower_labels = []
-    tower_loss = []
 
     for dev_ind in range(numdev):
         dev = devlist[dev_ind]
@@ -107,40 +104,25 @@ def benchmark_cnn(
 
                 gradient = optimizer.compute_gradients(loss)
                 tower_gradients.append(gradient)
-                tower_predict.append(tf.argmax(logits,1))
-                tower_labels.append(tf.argmax(labels,1))
 
-    tower_predict = tf.stack(tower_predict)
-    tower_labels = tf.stack(tower_labels)
     mean_gradient = average_gradients.average_gradients(tower_gradients)
     train_op = optimizer.apply_gradients(mean_gradient, global_step=global_step)
-    correct_prediction = tf.equal(tower_predict, tower_labels)
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     loss_summary = tf.summary.scalar("training_loss", loss)
-    accuracy_summary = tf.summary.scalar("training_accuracy", accuracy)
-    lr_summary = tf.summary.scalar("learning_rate", lr)
 
 
     acc = np.empty([numsteps,1])
-    with tf.Session(config=tf.ConfigProto(
-            allow_soft_placement=True,
-            log_device_placement=True)) as sess:
+    with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
-        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=60)
+        writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)
         t_train = time.time()
         for i in range(numsteps):
-            _, loss_summ, acc_summ, lr_summ = sess.run([
-                            train_op,
-                            loss_summary,
-                            accuracy_summary,
-                            lr_summary],
+            _, loss_summ = sess.run(
+                    [train_op, loss_summary],
                     options=options,
                     run_metadata=run_metadata)
             writer.add_summary(loss_summ, i)
-            writer.add_summary(acc_summ, i)
-            writer.add_summary(lr_summ, i)
             if logstep > 0:
                 if i%logstep==0:
                     print("%.2f sec, step %d" %(time.time()-t_train, i))
