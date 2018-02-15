@@ -18,7 +18,7 @@ def build_model(
         num_classes):
 
     # Conv layer 0
-    with tf.variable_scope('conv_0' as scope:
+    with tf.variable_scope('conv_0') as scope:
         kernel0 = tf.get_variable(
                 'weights_0',
                 shape=[kernel_size[0], kernel_size[0], num_channels, num_features[0]],
@@ -44,7 +44,7 @@ def build_model(
 
 
     # Conv layer 1
-    with tf.variable_scope('conv_1' as scope:
+    with tf.variable_scope('conv_1') as scope:
         kernel1 = tf.get_variable(
                 'weights_1',
                 shape=[kernel_size[1], kernel_size[1], num_features[0], num_features[1]],
@@ -70,7 +70,7 @@ def build_model(
 
 
     # Conv layer 2
-    with tf.variable_scope('conv_2' as scope:
+    with tf.variable_scope('conv_2') as scope:
         kernel2 = tf.get_variable(
                 'weights_2',
                 shape=[kernel_size[2], kernel_size[2], num_features[1], num_features[2]],
