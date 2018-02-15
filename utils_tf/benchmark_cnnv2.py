@@ -7,7 +7,7 @@ import tensorflow as tf
 import numpy as np
 import time
 from tensorflow.python.client import timeline
-from utils_tf.utils_cnn import cnn_multidevicev2, build_datasetv2, average_gradients
+from utils_tf.utils_cnn import cnn_multidevicev3, build_datasetv2, average_gradients
 
 def benchmark_cnn(
         num_layers,
