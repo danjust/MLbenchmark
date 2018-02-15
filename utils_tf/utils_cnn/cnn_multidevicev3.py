@@ -19,7 +19,7 @@ def build_model(
 
     # Conv layer 0
     with tf.variable_scope('conv_0') as scope:
-        with tf.device('/gpu:0'):
+        with tf.device('/cpu:0'):
             kernel0 = tf.get_variable(
                     'weights_0',
                     shape=[kernel_size[0], kernel_size[0], num_channels, num_features[0]],
@@ -46,7 +46,7 @@ def build_model(
 
     # Conv layer 1
     with tf.variable_scope('conv_1') as scope:
-        with tf.device('/gpu:1'):
+        with tf.device('/cpu:0'):
             kernel1 = tf.get_variable(
                     'weights_1',
                     shape=[kernel_size[1], kernel_size[1], num_features[0], num_features[1]],
@@ -73,7 +73,7 @@ def build_model(
 
     # Conv layer 2
     with tf.variable_scope('conv_2') as scope:
-        with tf.device('/gpu:2'):
+        with tf.device('/cpu:0'):
             kernel2 = tf.get_variable(
                     'weights_2',
                     shape=[kernel_size[2], kernel_size[2], num_features[1], num_features[2]],
@@ -105,7 +105,7 @@ def build_model(
 
     dim = pool_flat.get_shape()[1].value
     with tf.variable_scope('dense') as scope:
-        with tf.device('/gpu:3'):
+        with tf.device('/cpu:0'):
             weightsd = tf.get_variable(
                     'weights_dense',
                     shape=[dim, fully_connected_size],
@@ -123,7 +123,7 @@ def build_model(
             training=True)
 
     with tf.variable_scope('softmax') as scope:
-        with tf.device('/gpu:2'):
+        with tf.device('/cpu:0'):
             weightss = tf.get_variable(
                     'weights_logits',
                     shape=[fully_connected_size, num_classes],
