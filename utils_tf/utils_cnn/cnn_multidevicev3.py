@@ -36,7 +36,7 @@ def build_model(
         conv_nonlinear0 = tf.nn.relu(tf.nn.bias_add(conv0, biases0), name=scope.name)
 
     pool0 = tf.nn.max_pool(
-            value=conv_nonlinear,
+            value=conv_nonlinear0,
             ksize=[1, pooling_size[0], pooling_size[0], 1],
             strides=[1, pooling_size[0], pooling_size[0], 1],
             padding='SAME',
@@ -62,7 +62,7 @@ def build_model(
         conv_nonlinear1 = tf.nn.relu(tf.nn.bias_add(conv1, biases1), name=scope.name)
 
     pool1 = tf.nn.max_pool(
-            value=conv_nonlinear,
+            value=conv_nonlinear1,
             ksize=[1, pooling_size[1], pooling_size[1], 1],
             strides=[1, pooling_size[1], pooling_size[1], 1],
             padding='SAME',
@@ -88,7 +88,7 @@ def build_model(
         conv_nonlinear2 = tf.nn.relu(tf.nn.bias_add(conv2, biases2), name=scope.name)
 
     pool2 = tf.nn.max_pool(
-            value=conv_nonlinear,
+            value=conv_nonlinear2,
             ksize=[1, pooling_size[2], pooling_size[2], 1],
             strides=[1, pooling_size[2], pooling_size[2], 1],
             padding='SAME',
