@@ -92,7 +92,7 @@ def benchmark_cnn(
         with tf.device(devlist[dev_ind]):
             with tf.name_scope('tower_%d' % (dev_ind)) as scope:
                 images,labels = next_batch
-                loss, logits = cnn_multidevicev2.build_model(
+                loss, logits = cnn_multidevicev3.build_model(
                         images,
                         labels,
                         num_layers,

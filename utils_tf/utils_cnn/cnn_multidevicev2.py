@@ -29,7 +29,7 @@ def build_model(
         with tf.variable_scope('conv_%d' %layer_ind) as scope:
             kernel = tf.get_variable(
                     'weights_%d' %layer_ind,
-                    shape=[kernel_size[0], kernel_size[0], input_features, num_features[layer_ind]],
+                    shape=[kernel_size[layer_ind], kernel_size[layer_ind], input_features, num_features[layer_ind]],
                     initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
             biases = tf.get_variable(
                     'biases_%d' %layer_ind,
@@ -45,8 +45,8 @@ def build_model(
 
         pool = tf.nn.max_pool(
                 value=conv_nonlinear,
-                ksize=[1, pooling_size[0], pooling_size[0], 1],
-                strides=[1, pooling_size[0], pooling_size[0], 1],
+                ksize=[1, pooling_size[layer_ind], pooling_size[layer_ind], 1],
+                strides=[1, pooling_size[layer_ind], pooling_size[layer_ind], 1],
                 padding='SAME',
                 name='pool_%d' %layer_ind)
 
