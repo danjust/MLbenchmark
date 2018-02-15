@@ -54,7 +54,7 @@ def build_model(
                 shape=[num_features[1]],
                 initializer=tf.constant_initializer(0.0))
         conv1 = tf.nn.conv2d(
-                input=pool1,
+                input=pool0,
                 filter=kernel1,
                 strides=[1,1,1,1],
                 padding='SAME')
@@ -80,7 +80,7 @@ def build_model(
                 shape=[num_features[2]],
                 initializer=tf.constant_initializer(0.0))
         conv2 = tf.nn.conv2d(
-                input=pool2,
+                input=pool1,
                 filter=kernel2,
                 strides=[1,1,1,1],
                 padding='SAME')
