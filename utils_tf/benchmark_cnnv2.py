@@ -51,7 +51,7 @@ def benchmark_cnn(
 
 
     # Generate the dataset and build the queue
-    with rf.device('/cpu:0'):
+    with tf.device('/cpu:0'):
         if gen_data==True:
             train_data, test_data = build_datasetv2.build_dataset(
                     num_trainimg,
