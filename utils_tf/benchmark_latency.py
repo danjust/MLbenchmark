@@ -5,12 +5,10 @@ import time
 
 def benchmark_latency(iterations,device1,device2):
     with tf.device(device1):
-        data = tf.data.Dataset.range(1)
-        data = data.repeat()
-        iterator = data.make_one_shot_iterator()
+        data = 1
 
     with tf.device(device2):
-        new_val = iterator.get_next()
+        new_val = tf.identity(data)
 
     # Creates the session
     config = tf.ConfigProto(
@@ -21,7 +19,7 @@ def benchmark_latency(iterations,device1,device2):
     with tf.Session(config=config) as sess:
 
         # Warm-up run
-        sess.run(mat_device.op)
+        sess.run(new_val.op)
 
         # Benchmark run
         t = time.time()
