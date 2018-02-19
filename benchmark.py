@@ -16,6 +16,7 @@ parser.add_argument('--testMatMul', type=bool, default=False, help='Benchmark ma
 parser.add_argument('--testConv', type=bool, default=False, help='Benchmark 2D convolution')
 parser.add_argument('--testRNN', type=bool, default=False, help='Benchmark recurrent neural networks')
 parser.add_argument('--testCNN', type=bool, default=False, help='Benchmark a cnn training')
+parser.add_argument('--testLatency', type=bool, default=False, help='Benchmark the latency of a GPU')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
@@ -53,6 +54,11 @@ parser.add_argument('--trackingstep_cnn', type=int, default=5000, help='write tr
 parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
 parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
 parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
+
+
+parser.add_argument('--matsize_latency', type=int, default=1024, help='Size of (square) matrix')
+parser.add_argument('--iterations_latency', type=int, default=10000, help='Number of iterations for latency test')
+parser.add_argument('--device_latency', type=str, default='/gpu:0', help='GPU for latency test')
 
 args = parser.parse_args()
 
@@ -153,5 +159,12 @@ def main(_):
                 args.num_testimg/timeUsed_infer
                 ))
 
+    if args.testCNN:
+        print("========================================\n")
+        print("Start testing GPU latency")
+        timeUsed = benchmark_latency.benchmark_latency(
+                args.matsize_latency,
+                args.iterations_latency,
+                args.device_latency)
 if __name__ == '__main__':
   tf.app.run()
