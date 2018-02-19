@@ -166,5 +166,6 @@ def main(_):
                 args.matsize_latency,
                 args.iterations_latency,
                 args.device_latency)
+        print("\nAverage latency = %f ms" % (args.iterations_latency/timeUsed))
 if __name__ == '__main__':
   tf.app.run()
