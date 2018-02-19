@@ -3,11 +3,14 @@ import numpy as np
 import time
 
 
-def benchmark_latency(matsize,iterations,device):
-    with tf.device('/cpu:0'):
-        mat = tf.Variable(tf.ones([matsize,matsize],dtype=tf.float32))
-    with tf.device(device):
-        mat_device = tf.identity(mat)
+def benchmark_latency(iterations,device1,device2):
+    with tf.device(device1):
+        data = tf.data.Dataset.range(1)
+        data = data.repeat()
+        iterator = data.make_one_shot_iterator()
+
+    with tf.device(device2):
+        new_val = iterator.get_next()
 
     # Creates the session
     config = tf.ConfigProto(
@@ -16,13 +19,12 @@ def benchmark_latency(matsize,iterations,device):
                             opt_level=tf.OptimizerOptions.L0)),
             log_device_placement=False)
     with tf.Session(config=config) as sess:
-        sess.run(tf.global_variables_initializer())
 
         # Warm-up run
-        sess.run(prod.op)
+        sess.run(mat_device.op)
 
         # Benchmark run
         t = time.time()
         for _ in range(iterations):
-            sess.run(mat_device.op)
+            sess.run(new_val.op)
     return (time.time()-t)/iterations

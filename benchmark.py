@@ -58,8 +58,8 @@ parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size f
 
 
 parser.add_argument('--matsize_latency', type=int, default=1024, help='Size of (square) matrix')
-parser.add_argument('--iterations_latency', type=int, default=10000, help='Number of iterations for latency test')
-parser.add_argument('--device_latency', type=str, default='/gpu:0', help='GPU for latency test')
+parser.add_argument('--device1_latency', type=str, default='/cpu:0', help='first device for latency test')
+parser.add_argument('--device2_latency', type=str, default='/gpu:0', help='second device for latency test')
 
 args = parser.parse_args()
 
@@ -167,6 +167,6 @@ def main(_):
                 args.matsize_latency,
                 args.iterations_latency,
                 args.device_latency)
-        print("\nAverage latency = %f ms" % (args.iterations_latency/timeUsed))
+        print("\nAverage latency = %f ms" % (timeUsed*1000))
 if __name__ == '__main__':
   tf.app.run()
