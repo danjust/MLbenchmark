@@ -106,7 +106,7 @@ def benchmark_cnn(
 
                 gradient = optimizer.compute_gradients(loss)
                 tower_gradients.append(gradient)
-    with tf.device('/cpu:0')
+    with tf.device('/cpu:0'):
         mean_gradient = average_gradients.average_gradients(tower_gradients)
         train_op = optimizer.apply_gradients(mean_gradient, global_step=global_step)
         loss_summary = tf.summary.scalar("training_loss", loss)

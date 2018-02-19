@@ -28,7 +28,7 @@ def benchmark_rnn(
             devlist = ['/gpu:%d' %i for i in range(num_gpu)]
     else:
         devlist = devlist.split(',')
-        
+
     datatype = eval('np.%s' %(datatype))
 
     # Generate synthetic data
@@ -70,21 +70,21 @@ def benchmark_rnn(
                             opt_level=tf.OptimizerOptions.L0)
                     )
             )
-    sess = tf.Session(config=config)
-    sess.run(tf.global_variables_initializer())
+    with tf.Session(config=config) as sess:
+        sess.run(tf.global_variables_initializer())
 
-    # Warm-up run
-    batchuse = np.random.randint(0,num_samples,batch_size)
-    batch_x = data[batchuse,:]
-    batch_y = target[batchuse,:]
-    sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
-
-    # Benchmark run
-    t_start = time.time()
-    for step in range(iterations):
+        # Warm-up run
         batchuse = np.random.randint(0,num_samples,batch_size)
         batch_x = data[batchuse,:]
         batch_y = target[batchuse,:]
         sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
+
+        # Benchmark run
+        t_start = time.time()
+        for step in range(iterations):
+            batchuse = np.random.randint(0,num_samples,batch_size)
+            batch_x = data[batchuse,:]
+            batch_y = target[batchuse,:]
+            sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
 
     return((time.time()-t_start)/iterations)

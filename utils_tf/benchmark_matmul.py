@@ -15,7 +15,7 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
         devlist = devlist.split(',')
 
     datatype = eval('tf.%s' %(datatype))
-    
+
     for dev in devlist:
         with tf.device(dev):
             matA = tf.Variable(tf.ones([n,n],dtype=datatype))
@@ -28,14 +28,15 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
                     optimizer_options=tf.OptimizerOptions(
                             opt_level=tf.OptimizerOptions.L0)),
             log_device_placement=False)
-    sess = tf.Session(config=config)
-    sess.run(tf.global_variables_initializer())
 
-    # Warm-up run
-    sess.run(prod.op)
+    with tf.Session(config=config) as sess:
+        sess.run(tf.global_variables_initializer())
 
-    # Benchmark run
-    t = time.time()
-    for _ in range(iterations):
+        # Warm-up run
         sess.run(prod.op)
-    return (time.time()-t)/iterations
+
+        # Benchmark run
+        t = time.time()
+        for _ in range(iterations):
+            sess.run(prod.op)
+        return (time.time()-t)/iterations
