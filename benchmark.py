@@ -7,6 +7,7 @@ from  utils_tf import benchmark_matmul
 from  utils_tf import benchmark_conv
 from  utils_tf import benchmark_rnn
 from  utils_tf import benchmark_cnnv2
+from  utils_tf import benchmark_latency
 
 import argparse
 parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
@@ -159,7 +160,7 @@ def main(_):
                 args.num_testimg/timeUsed_infer
                 ))
 
-    if args.testCNN:
+    if args.testLatency:
         print("========================================\n")
         print("Start testing GPU latency")
         timeUsed = benchmark_latency.benchmark_latency(

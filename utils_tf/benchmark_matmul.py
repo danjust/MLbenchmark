@@ -39,4 +39,4 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
         t = time.time()
         for _ in range(iterations):
             sess.run(prod.op)
-        return (time.time()-t)/iterations
+    return (time.time()-t)/iterations
