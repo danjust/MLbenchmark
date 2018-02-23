@@ -89,6 +89,7 @@ def benchmark_pipeline(
                         run_metadata=run_metadata)
                 if logstep > 0:
                     if i%logstep==0:
+                        print("%.2f sec, step %d" %(time.time()-t_start, i))
                         fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                         chrome_trace = fetched_timeline.generate_chrome_trace_format()
                         with open('%s/timeline_step_%d.json' % (log_dir,i), 'w') as f:
@@ -118,13 +119,13 @@ def benchmark_pipeline(
             next_batch = iterator.get_next()
 
             returnValue = []
-            for dev_ind in range(numdev):
-                dev = devlist[dev_ind]
-                print("device %s" % dev)
-                with tf.device(devlist[dev_ind]):
-                    with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                        images,labels = next_batch
-                        returnValue.append(images[0,0,0,0])
+        for dev_ind in range(numdev):
+            dev = devlist[dev_ind]
+            print("device %s" % dev)
+            with tf.device(devlist[dev_ind]):
+                with tf.name_scope('tower_%d' % (dev_ind)) as scope:
+                    images,labels = next_batch
+                    returnValue.append(images[0,0,0,0])
 
 
 
@@ -137,7 +138,7 @@ def benchmark_pipeline(
                 _ = sess.run(returnValue)
                 if logstep > 0:
                     if i%(logstep)==0:
-                        print("%.2f sec, step %d" %(time.time()-t_train, i))
+                        print("%.2f sec, step %d" %(time.time()-t_start, i))
                         fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                         chrome_trace = fetched_timeline.generate_chrome_trace_format()
                         with open('%s/timeline_step_%d.json' % (log_dir,i), 'w') as f:

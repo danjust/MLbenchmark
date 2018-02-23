@@ -1,7 +1,8 @@
 """Benchmark script for frequently used machine learning operations
 Using TensorFlow
 """
-
+import os
+import argparse
 import tensorflow as tf
 from  utils_tf import benchmark_matmul
 from  utils_tf import benchmark_conv
@@ -11,7 +12,9 @@ from  utils_tf import benchmark_latency
 from  utils_tf import benchmark_inputpipeline
 from  utils_tf import benchmark_connectivity
 
-import argparse
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
+
+
 parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
 
 # Benchmarks to perform
@@ -66,7 +69,7 @@ parser.add_argument('--device1_latency', type=str, default='/cpu:0', help='First
 parser.add_argument('--device2_latency', type=str, default='/gpu:0', help='Second device for latency test')
 
 parser.add_argument('--pipeline', type=str, default='dataset', help='Type of data pipeline, one of feed_dict, queue_runner, dataset')
-parser.add_argument('--numsteps_input', type=int, default=100, help='Number of iterations for testing data pipeline')
+parser.add_argument('--numsteps_input', type=int, default=10000, help='Number of iterations for testing data pipeline')
 parser.add_argument('--batchsize_input', type=int, default=128, help='Batch size for testing data pipeline')
 
 parser.add_argument('--devlist_connectivity', type=str, default='/cpu:0,/gpu:0', help='Devices for testing connection speed')
