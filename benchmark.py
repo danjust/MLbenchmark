@@ -8,6 +8,7 @@ from  utils_tf import benchmark_conv
 from  utils_tf import benchmark_rnn
 from  utils_tf import benchmark_cnnv2
 from  utils_tf import benchmark_latency
+from  utils_tf import benchmark_inputpipeline
 
 import argparse
 parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
@@ -17,12 +18,12 @@ parser.add_argument('--testMatMul', type=bool, default=False, help='Benchmark ma
 parser.add_argument('--testConv', type=bool, default=False, help='Benchmark 2D convolution')
 parser.add_argument('--testRNN', type=bool, default=False, help='Benchmark recurrent neural networks')
 parser.add_argument('--testCNN', type=bool, default=False, help='Benchmark a cnn training')
-parser.add_argument('--testLatency', type=bool, default=False, help='Benchmark the latency of a GPU')
+parser.add_argument('--testLatency', type=bool, default=False, help='Benchmark the latency of a Device')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
-parser.add_argument('--datatype', type=str, default='float32', help='Datatype')
+parser.add_argument('--precision', type=int, default=32, help='Precision')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
@@ -50,8 +51,8 @@ parser.add_argument('--pooling_cnn', type=int, nargs='+', default=[2,2,2], help=
 parser.add_argument('--fully_connected_size', type=int, default=256, help='Number of neurons in fully connected layer')
 parser.add_argument('--num_trainimg', type=int, default=1000000, help='Number of training images if synthetic data')
 parser.add_argument('--num_testimg', type=int, default=10000, help='Number of validation images if synthetic data')
-parser.add_argument('--logstep_cnn', type=int, default=500, help='write log at these steps (0 to disable logging)')
-parser.add_argument('--trackingstep_cnn', type=int, default=5000, help='write tracking at these steps (0 to disable logging)')
+parser.add_argument('--logstep', type=int, default=500, help='write log at these steps (0 to disable logging)')
+parser.add_argument('--trackingstep', type=int, default=5000, help='write tracking at these steps (0 to disable logging)')
 parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
 parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
 parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
@@ -60,6 +61,14 @@ parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size f
 parser.add_argument('--iterations_latency', type=int, default=100000, help='Number of iterations for latency')
 parser.add_argument('--device1_latency', type=str, default='/cpu:0', help='First device for latency test')
 parser.add_argument('--device2_latency', type=str, default='/gpu:0', help='Second device for latency test')
+
+parser.add_argument('--pipeline', type=str, default='dataset', help='Type of data pipeline, one of feed_dict, queue_runner, dataset')
+parser.add_argument('--numsteps_input', type=int, default=100, help='Number of iterations for testing data pipeline')
+parser.add_argument('--batchsize_input', type=int, default=128, help='Batch size for testing data pipeline')
+
+parser.add_argument('--devlist_connectivity', type=str, default='[/cpu:0,/gpu:0]', help='Devices for testing connection speed')
+parser.add_argument('--matsize_connectivity', type=int, default=2048, help='Size of tensors for testing connection speed')
+parser.add_argument('--iterations_connectivity', type=int, default=1000, help='Number of iterations for testing connection speed')
 
 args = parser.parse_args()
 
@@ -77,11 +86,11 @@ def main(_):
                 args.iter,
                 args.num_gpu,
                 args.devlist,
-                args.datatype)
-        print("\n%d x %d matrix multiplication (%s): %.2f GFLOPS (%.2f matrices per sec)"
+                args.precision)
+        print("\n%d x %d matrix multiplication (float%d): %.2f GFLOPS (%.2f matrices per sec)"
                 % (args.matsize,
                 args.matsize,
-                args.datatype,
+                args.precision,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
@@ -98,11 +107,11 @@ def main(_):
                 args.iter,
                 args.num_gpu,
                 args.devlist,
-                args.datatype)
-        print("\n%d x %d convolution (%s): %.2f GFLOPS (%.2f matrices per sec)"
+                args.precision)
+        print("\n%d x %d convolution (float%d): %.2f GFLOPS (%.2f matrices per sec)"
                 % (args.matsize,
                 args.kernelsize,
-                args.datatype,
+                args.precision,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
@@ -120,7 +129,7 @@ def main(_):
                 args.iter_rnn,
                 args.num_gpu,
                 args.devlist,
-                args.datatype)
+                args.precision)
         print("\n%s:  %.2f steps per sec"
                 % (args.rnn_type,
                 1/timeUsed))
@@ -136,13 +145,14 @@ def main(_):
                 args.fully_connected_size,
                 args.lr_initial,
                 args.lr_decay,
+                args.precision,
                 args.num_trainimg,
                 args.num_testimg,
                 args.imgsize,
                 args.numsteps_cnn,
                 args.batchsize_cnn,
-                args.logstep_cnn,
-                args.trackingstep_cnn,
+                args.logstep,
+                args.trackingstep,
                 args.num_gpu,
                 args.devlist,
                 args.data_dir,
@@ -168,5 +178,32 @@ def main(_):
                 args.device1_latency,
                 args.device2_latency)
         print("\nAverage latency = %f ms" % (timeUsed*1000))
+
+    if True: #args.testImputPipeline:
+        print("========================================\n")
+        print("Start testing input pipeline")
+        timeUsed = benchmark_inputpipeline.benchmark_pipeline(
+                args.num_gpu,
+                args.devlist,
+                args.batchsize_input,
+                args.data_dir,
+                args.num_trainimg,
+                args.imgsize,
+                args.precision,
+                args.numsteps_input,
+                args.pipeline,
+                args.train_dir,
+                args.logstep)
+        print("\n%.2f images per second" %(args.numsteps_input*args.batchsize_input/timeUsed))
+
+    if args.testConnectivity:
+        print("========================================\n")
+        print("Start testing input pipeline")
+        benchmark_connectivity(
+                args.devlist_connectivity,
+                args.precision,
+                args.matsize_connectivity,
+                args.matsize_connectivity,
+                args.iterations_connectivity)
 if __name__ == '__main__':
   tf.app.run()

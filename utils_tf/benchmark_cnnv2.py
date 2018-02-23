@@ -17,6 +17,7 @@ def benchmark_cnn(
         fully_connected_size,
         lr_initial,
         lr_decay,
+        precision,
         num_trainimg,
         num_testimg,
         imgsize,
@@ -39,6 +40,9 @@ def benchmark_cnn(
 
     numdev = len(devlist)
 
+    datatype = "float%d" %precision
+
+
     if data_dir=='':
         gen_data=True
         num_channels=1
@@ -56,7 +60,8 @@ def benchmark_cnn(
             train_data, test_data = build_datasetv2.build_dataset(
                     num_trainimg,
                     num_testimg,
-                    imgsize)
+                    imgsize,
+                    datatype)
         elif gen_data==False:
             train_data, test_data = build_datasetv2.import_cifar(data_dir)
 
@@ -101,7 +106,8 @@ def benchmark_cnn(
                         pooling_size,
                         fully_connected_size,
                         num_channels,
-                        num_classes)
+                        num_classes,
+                        datatype)
                 tf.get_variable_scope().reuse_variables()
 
                 gradient = optimizer.compute_gradients(loss)

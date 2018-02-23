@@ -5,8 +5,8 @@ import tensorflow as tf
 import os
 import sys
 
-def build_dataset(num_trainimg,num_testimg,imgsize):
-    trainimg = np.zeros([num_trainimg,imgsize,imgsize,1]).astype(np.float32)
+def build_dataset(num_trainimg,num_testimg,imgsize,dtype):
+    trainimg = np.zeros([num_trainimg,imgsize,imgsize,1]).astype(eval('np.%s' %(dtype)))
     trainlabel = np.zeros([num_trainimg,2]).astype(np.int16)
     for i in range(num_trainimg):
         isvert = np.random.randint(2)
@@ -20,7 +20,7 @@ def build_dataset(num_trainimg,num_testimg,imgsize):
 
     train_data=tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
 
-    testimg = np.zeros([num_testimg,imgsize,imgsize,1]).astype(np.float32)
+    testimg = np.zeros([num_testimg,imgsize,imgsize,1]).astype(eval('np.%s' %(dtype)))
     testlabel = np.zeros([num_testimg,2]).astype(np.int16)
     for i in range(num_testimg):
         isvert = np.random.randint(2)
@@ -57,7 +57,7 @@ def unpickle(file):
     return dict
 
 def import_cifar(data_dir):
-    img = np.empty([50000,3072],dtype=np.float32)
+    img = np.empty([50000,3072],dtype=astype(eval('np.%s' %(dtype))))
     lbl = np.empty(50000,dtype=np.int16)
     trainlabel = np.zeros([50000,10],dtype=np.int16)
 

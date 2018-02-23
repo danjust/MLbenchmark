@@ -15,7 +15,10 @@ def build_model(
         pooling_size,
         fully_connected_size,
         num_channels,
-        num_classes):
+        num_classes,
+        dtype):
+
+    dtype = eval('tf.%s' %(datatype))
 
     # Conv layer 0
     with tf.variable_scope('conv_0') as scope:
@@ -23,11 +26,13 @@ def build_model(
             kernel0 = tf.get_variable(
                     'weights_0',
                     shape=[kernel_size[0], kernel_size[0], num_channels, num_features[0]],
-                    initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    initializer=tf.truncated_normal_initializer(stddev=5e-3),
+                    dtype=dtype)
             biases0 = tf.get_variable(
                     'biases_0',
                     shape=[num_features[0]],
-                    initializer=tf.constant_initializer(0.0))
+                    initializer=tf.constant_initializer(0.0),
+                    dtype=dtype)
         conv0 = tf.nn.conv2d(
                 input=images,
                 filter=kernel0,
@@ -50,11 +55,13 @@ def build_model(
             kernel1 = tf.get_variable(
                     'weights_1',
                     shape=[kernel_size[1], kernel_size[1], num_features[0], num_features[1]],
-                    initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    initializer=tf.truncated_normal_initializer(stddev=5e-3),
+                    dtype=dtype)
             biases1 = tf.get_variable(
                     'biases_1',
                     shape=[num_features[1]],
-                    initializer=tf.constant_initializer(0.0))
+                    initializer=tf.constant_initializer(0.0),
+                    dtype=dtype)
         conv1 = tf.nn.conv2d(
                 input=pool0,
                 filter=kernel1,
@@ -77,11 +84,13 @@ def build_model(
             kernel2 = tf.get_variable(
                     'weights_2',
                     shape=[kernel_size[2], kernel_size[2], num_features[1], num_features[2]],
-                    initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    initializer=tf.truncated_normal_initializer(stddev=5e-3),
+                    dtype=dtype)
             biases2 = tf.get_variable(
                     'biases_2',
                     shape=[num_features[2]],
-                    initializer=tf.constant_initializer(0.0))
+                    initializer=tf.constant_initializer(0.0),
+                    dtype=dtype)
         conv2 = tf.nn.conv2d(
                 input=pool1,
                 filter=kernel2,
@@ -109,11 +118,13 @@ def build_model(
             weightsd = tf.get_variable(
                     'weights_dense',
                     shape=[dim, fully_connected_size],
-                    initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    initializer=tf.truncated_normal_initializer(stddev=5e-3),
+                    dtype=dtype)
             biasesd = tf.get_variable(
                     'biases_dense',
                     shape=[fully_connected_size],
-                    initializer=tf.constant_initializer(0.1))
+                    initializer=tf.constant_initializer(0.1),
+                    dtype=dtype)
         dense = tf.nn.relu(tf.matmul(pool_flat, weightsd) + biasesd, name=scope.name)
 
 
@@ -127,11 +138,13 @@ def build_model(
             weightss = tf.get_variable(
                     'weights_logits',
                     shape=[fully_connected_size, num_classes],
-                    initializer=tf.truncated_normal_initializer(stddev=5e-3, dtype=tf.float32))
+                    initializer=tf.truncated_normal_initializer(stddev=5e-3),
+                    dtype=dtype)
             biasess = tf.get_variable(
                     'biases_logits',
                     shape=[num_classes],
-                    initializer=tf.constant_initializer(0.1))
+                    initializer=tf.constant_initializer(0.1),
+                    dtype=dtype)
         logits = tf.add(tf.matmul(dropout, weightss), biasess, name=scope.name)
 
 

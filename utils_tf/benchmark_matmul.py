@@ -4,7 +4,7 @@ import tensorflow as tf
 import time
 
 
-def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
+def benchmark_matmul(n,iterations,num_gpu,devlist,precision):
     # generate list of devices if devlist is empty
     if devlist=='':
         if num_gpu==0:
@@ -14,7 +14,7 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,datatype):
     else:
         devlist = devlist.split(',')
 
-    datatype = eval('tf.%s' %(datatype))
+    datatype = eval('tf.float%d' %(precision))
 
     for dev in devlist:
         with tf.device(dev):

@@ -18,7 +18,7 @@ def benchmark_rnn(
         iterations,
         num_gpu,
         devlist,
-        datatype):
+        precision):
 
     # generate list of devices if devlist is empty
     if devlist=='':
@@ -29,7 +29,7 @@ def benchmark_rnn(
     else:
         devlist = devlist.split(',')
 
-    datatype = eval('np.%s' %(datatype))
+    datatype = eval('np.float%d' %(precision))
 
     # Generate synthetic data
     data = np.random.rand(num_samples,seq_length).astype(datatype)
