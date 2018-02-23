@@ -9,6 +9,7 @@ from  utils_tf import benchmark_rnn
 from  utils_tf import benchmark_cnnv2
 from  utils_tf import benchmark_latency
 from  utils_tf import benchmark_inputpipeline
+from  utils_tf import benchmark_connectivity
 
 import argparse
 parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
@@ -68,7 +69,7 @@ parser.add_argument('--pipeline', type=str, default='dataset', help='Type of dat
 parser.add_argument('--numsteps_input', type=int, default=100, help='Number of iterations for testing data pipeline')
 parser.add_argument('--batchsize_input', type=int, default=128, help='Batch size for testing data pipeline')
 
-parser.add_argument('--devlist_connectivity', type=str, default='[/cpu:0,/gpu:0]', help='Devices for testing connection speed')
+parser.add_argument('--devlist_connectivity', type=str, default='/cpu:0,/gpu:0', help='Devices for testing connection speed')
 parser.add_argument('--matsize_connectivity', type=int, default=2048, help='Size of tensors for testing connection speed')
 parser.add_argument('--iterations_connectivity', type=int, default=1000, help='Number of iterations for testing connection speed')
 

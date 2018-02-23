@@ -1,5 +1,4 @@
-import tensorflow as tf
-import time
+from utils_connectivity import benchmark_onedir
 
 
 def benchmark_connectivity(
@@ -9,9 +8,11 @@ def benchmark_connectivity(
         size_y,
         iterations):
 
+    devlist = devlist.split(',')
+
     for host_dev in devlist:
         for remote_dev in devlist:
-            timeUsed = benchmark_onedir(
+            timeUsed = benchmark_onedir.benchmark_onedir(
                     host_dev,
                     remote_dev,
                     precision,
