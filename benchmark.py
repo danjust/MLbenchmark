@@ -19,6 +19,8 @@ parser.add_argument('--testConv', type=bool, default=False, help='Benchmark 2D c
 parser.add_argument('--testRNN', type=bool, default=False, help='Benchmark recurrent neural networks')
 parser.add_argument('--testCNN', type=bool, default=False, help='Benchmark a cnn training')
 parser.add_argument('--testLatency', type=bool, default=False, help='Benchmark the latency of a Device')
+parser.add_argument('--testPipeline', type=bool, default=False, help='Benchmark the data pipeline')
+parser.add_argument('--testConnectivity', type=bool, default=False, help='Benchmark the conncetion speed of a list of devices')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
@@ -179,7 +181,7 @@ def main(_):
                 args.device2_latency)
         print("\nAverage latency = %f ms" % (timeUsed*1000))
 
-    if True: #args.testImputPipeline:
+    if args.testPipeline:
         print("========================================\n")
         print("Start testing input pipeline")
         timeUsed = benchmark_inputpipeline.benchmark_pipeline(
