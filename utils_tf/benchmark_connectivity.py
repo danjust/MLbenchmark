@@ -1,5 +1,4 @@
-from utils_connectivity import benchmark_onedir
-
+from utils_tf.utils_connectivity import benchmark_onedir
 
 def benchmark_connectivity(
         devlist,
@@ -18,5 +17,7 @@ def benchmark_connectivity(
                     precision,
                     size_x,
                     size_y,
-                    iterations):
+                    iterations)
             print('%s --> %s: %.3f GBit / s' %(host_dev,remote_dev,size_x*size_y*precision/(timeUsed*1e9)))
+
+    return True

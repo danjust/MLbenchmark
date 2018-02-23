@@ -202,7 +202,7 @@ def main(_):
     if args.testConnectivity:
         print("========================================\n")
         print("Start testing input pipeline")
-        benchmark_connectivity(
+        benchmark_connectivity.benchmark_connectivity(
                 args.devlist_connectivity,
                 args.precision,
                 args.matsize_connectivity,
