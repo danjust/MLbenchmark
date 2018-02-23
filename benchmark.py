@@ -200,7 +200,8 @@ def main(_):
                 args.pipeline,
                 args.train_dir,
                 args.logstep)
-        print("\n%.2f images per second" %(args.numsteps_input*args.batchsize_input/timeUsed))
+        num_imgs = args.numsteps_input*args.batchsize_input*max(1,args.num_gpu)
+        print("\n%.2f images per second" %(num_imgs/timeUsed))
 
     if args.testConnectivity:
         print("========================================\n")
