@@ -148,8 +148,6 @@ def benchmark_cnn(
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)
-        t_train = time.time()
-        t_step = time.time()
         for i in range(numsteps):
             _, loss_summ = sess.run(
                     [train_op, loss_summary],
@@ -159,7 +157,11 @@ def benchmark_cnn(
             if logstep > 0:
                 if i%logstep==0:
                     writer.add_summary(loss_summ, i)
-                if i>0 and i%(trackingstep)==0:
+                if i==0:
+                    print("start")
+                    t_train = time.time()
+                    t_step = time.time()
+                elif i%(trackingstep)==0:
                     t = time.time()
                     print("%.2f sec, step %d, %.2f images/sec" %(
                             time.time()-t_train,
