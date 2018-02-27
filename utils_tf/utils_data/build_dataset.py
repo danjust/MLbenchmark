@@ -98,6 +98,7 @@ def get_iterator(
     dataset = tf.data.TFRecordDataset(filenames)
     # Parse the record into tensors.
     dataset = dataset.map(_parse_function, num_parallel_calls=numdev)
+    dataset = dataset.prefetch(batchsize*numdev)
     # Repeat the input indefinitely.
     dataset = dataset.repeat()
     # Shuffle data
