@@ -127,7 +127,10 @@ def data_api_from_file(
         run_metadata = tf.RunMetadata()
         t_start = time.time()
         for i in range(numsteps):
-            _ = sess.run(returnValue)
+            _ = sess.run(
+                    returnValue,
+                    options=options,
+                    run_metadata=run_metadata)
             if logstep > 0:
                 if i%(logstep)==0:
                     print("%.2f sec, step %d" %(time.time()-t_start, i))
