@@ -49,7 +49,6 @@ def data_api_from_memory(
         train_batch = train_data.batch(batchsize)
         # Create an iterator
         iterator = train_batch.make_one_shot_iterator()
-        next_batch = iterator.get_next()
 
 
     # Define graph
@@ -59,7 +58,7 @@ def data_api_from_memory(
         print("device %s" % dev)
         with tf.device(devlist[dev_ind]):
             with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                images, labels = next_batch
+                images, labels = iterator.get_next()
                 returnValue.append(images[0,0,0,0])
 
 

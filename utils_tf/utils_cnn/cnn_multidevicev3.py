@@ -16,7 +16,7 @@ def build_model(
         fully_connected_size,
         num_channels,
         num_classes,
-        dtype):
+        datatype):
 
     dtype = eval('tf.%s' %(datatype))
 
@@ -149,7 +149,7 @@ def build_model(
 
 
     loss = tf.losses.softmax_cross_entropy(
-            onehot_labels=labels,
+            onehot_labels=tf.one_hot(labels,num_classes),
             logits=logits)
 
     return loss, logits

@@ -24,6 +24,7 @@ def benchmark_cnn(
         imgsize,
         numsteps,
         batchsize,
+        data_in_mem,
         logstep,
         trackingstep,
         num_gpu,
@@ -45,9 +46,11 @@ def benchmark_cnn(
 
 
     if data_file=='':
+        data_in_mem = True
         gen_data = True
         num_channels = 1
         num_classes = 2
+
     else:
         gen_data = False
         imgsize = 32
@@ -57,29 +60,38 @@ def benchmark_cnn(
 
     # Generate the dataset and build the queue
     with tf.device('/cpu:0'):
-        if gen_data==True:
-            trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
-                    num_trainimg,
-                    num_testimg,
-                    imgsize,
-                    datatype)
-        elif gen_data==False:
-            trainimg, trainlabel = build_dataset.load_full_dataset(
-                    data_file,
-                    imgsize,
-                    imgsize)
+        if data_in_mem:
+            if gen_data==True:
+                trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
+                        num_trainimg,
+                        num_testimg,
+                        imgsize,
+                        datatype)
+            elif gen_data==False:
+                trainimg, trainlabel = build_dataset.load_full_dataset(
+                        data_file,
+                        imgsize,
+                        imgsize)
 
-        # Generate tf.data dataset
-        train_data = tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
-        # Repeat data indefinetely
-        train_data = train_data.repeat()
-        # Shuffle data
-        train_data = train_data.shuffle(5*batchsize)
-        # Prepare batches
-        train_batch = train_data.batch(batchsize)
-        # Create an iterator
-        iterator = train_batch.make_one_shot_iterator()
-        next_batch = iterator.get_next()
+            # Generate tf.data dataset
+            train_data = tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
+            # Repeat data indefinetely
+            train_data = train_data.repeat()
+            # Shuffle data
+            train_data = train_data.shuffle(5*batchsize)
+            # Prepare batches
+            train_batch = train_data.batch(batchsize)
+            # Create an iterator
+            iterator = train_batch.make_one_shot_iterator()
+        else:
+            filenames = tf.placeholder(tf.string, shape=[None])
+            iterator = build_dataset.get_iterator(
+                    filenames,
+                    batchsize,
+                    imgsize,
+                    imgsize,
+                    num_channels,
+                    numdev)
 
 
     # Set learning rate and build optimizer
@@ -106,7 +118,7 @@ def benchmark_cnn(
         print("device %s" % dev)
         with tf.device(devlist[dev_ind]):
             with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                images,labels = next_batch
+                images,labels = iterator.get_next()
                 loss, logits = cnn_multidevicev3.build_model(
                         images,
                         labels,
@@ -131,6 +143,8 @@ def benchmark_cnn(
     acc = np.empty([numsteps,1])
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
+        if not data_in_mem:
+            sess.run(it.initializer, feed_dict={filenames: data_file})
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)

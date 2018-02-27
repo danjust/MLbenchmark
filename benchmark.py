@@ -158,6 +158,7 @@ def main(_):
                 args.imgsize,
                 args.numsteps_cnn,
                 args.batchsize_cnn,
+                args.data_in_mem,
                 args.logstep,
                 args.trackingstep,
                 args.num_gpu,
