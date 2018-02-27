@@ -7,7 +7,7 @@ import numpy as np
 import os
 import sys
 
-def generate_data(num_trainimg,num_testimg,imgsize,dtype):
+def generate_data(num_trainimg, num_testimg, imgsize, dtype):
     """Builds a synthetic dataset with horizontal or vertical lines.
     Returns images and labels.
     """
@@ -88,12 +88,20 @@ def _parse_function(example_proto):
     return image, label
 
 
-def get_iterator(filenames, batchsize, width, height, num_channels):
+def get_iterator(
+        filenames,
+        batchsize,
+        width,
+        height,
+        num_channels,
+        numdev):
     dataset = tf.data.TFRecordDataset(filenames)
     # Parse the record into tensors.
-    dataset = dataset.map(_parse_function)
+    dataset = dataset.map(_parse_function, num_parallel_calls=numdev)
     # Repeat the input indefinitely.
     dataset = dataset.repeat()
+    # Shuffle data
+    dataset = dataset.shuffle(5*batchsize)
     # Prepare batches
     dataset = dataset.batch(batchsize)
     # Create an iterator

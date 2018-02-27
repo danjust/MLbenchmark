@@ -71,4 +71,8 @@ def benchmark_pipeline(
                     logstep,
                     datatype)
 
+    else:
+        print("Pipeline has to be of feed_dict, queue_runner or dataset")
+        return 0
+
     return timeUsed

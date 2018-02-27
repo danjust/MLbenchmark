@@ -14,17 +14,19 @@ def data_api_from_memory(
         logstep,
         datatype):
 
-    numdev = len(devlist)
 
-    if data_file=='':
-        gen_data = True
-        data_in_mem = True
-    else:
-        gen_data = False
-        imgsize = 32
-
-    # Generate or load data
     with tf.device('/cpu:0'):
+
+        numdev = len(devlist)
+
+        if data_file=='':
+            gen_data = True
+            data_in_mem = True
+        else:
+            gen_data = False
+            imgsize = 32
+
+        # Generate or load data
         if gen_data==True:
             trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
                     num_trainimg,
@@ -91,18 +93,20 @@ def data_api_from_file(
         logstep,
         datatype):
 
-    numdev = len(devlist)
+    with tf.device('/cpu:0'):
+        numdev = len(devlist)
 
-    imgsize = 32
+        imgsize = 32
 
-    # Generate dataset and iterator
-    filenames = tf.placeholder(tf.string, shape=[None])
-    iterator = build_dataset.get_iterator(
-            filenames,
-            batchsize,
-            imgsize,
-            imgsize,
-            num_channels)
+        # Generate dataset and iterator
+        filenames = tf.placeholder(tf.string, shape=[None])
+        iterator = build_dataset.get_iterator(
+                filenames,
+                batchsize,
+                imgsize,
+                imgsize,
+                num_channels,
+                numdev)
 
     # Define graph
     returnValue = []
