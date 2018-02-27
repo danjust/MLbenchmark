@@ -43,6 +43,7 @@ def benchmark_cnn(
     numdev = len(devlist)
 
     datatype = "float%d" %precision
+    file_list = data_file.split(',')
 
 
     if data_file=='':
@@ -62,12 +63,14 @@ def benchmark_cnn(
     with tf.device('/cpu:0'):
         if data_in_mem:
             if gen_data==True:
+                print('Synthetic data in memory')
                 trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
                         num_trainimg,
                         num_testimg,
                         imgsize,
                         datatype)
             elif gen_data==False:
+                print('Real data in memory')
                 trainimg, trainlabel = build_dataset.load_full_dataset(
                         data_file,
                         imgsize,
@@ -84,6 +87,7 @@ def benchmark_cnn(
             # Create an iterator
             iterator = train_batch.make_one_shot_iterator()
         else:
+            print('Real data from file')
             filenames = tf.placeholder(tf.string, shape=[None])
             iterator = build_dataset.get_iterator(
                     filenames,
@@ -144,7 +148,7 @@ def benchmark_cnn(
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         if not data_in_mem:
-            sess.run(it.initializer, feed_dict={filenames: data_file})
+            sess.run(it.initializer, feed_dict={filenames: file_list})
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)

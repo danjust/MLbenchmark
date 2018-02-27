@@ -91,7 +91,7 @@ def data_api_from_file(
         logstep,
         datatype):
     num_channels = 3
-    data_file = data_file.split(',')
+    file_list = data_file.split(',')
 
     with tf.device('/cpu:0'):
         numdev = len(devlist)
@@ -122,19 +122,27 @@ def data_api_from_file(
 
     # Run model
     with tf.Session() as sess:
-        sess.run(iterator.initializer, feed_dict={filenames: data_file})
+        sess.run(iterator.initializer, feed_dict={filenames: file_list})
         sess.run(tf.global_variables_initializer())
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
-        t_start = time.time()
         for i in range(numsteps):
             _ = sess.run(
                     returnValue,
                     options=options,
                     run_metadata=run_metadata)
-            if logstep > 0:
+            if i==0:
+                print("start")
+                t_start = time.time()
+                t_step = time.time()
+            elif logstep > 0:
                 if i%(logstep)==0:
-                    print("Data from file: %.2f sec, step %d" %(time.time()-t_start, i))
+                    t = time.time()
+                    print("Data from file: %.2f sec, step %d, %.2f images per sec" %(
+                            time.time()-t_start,
+                            i,
+                            batchsize*logstep*numdev/(time.time-t_step)))
+                    t_step = t
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
                     with open('%s/timeline_step_%d.json' % (log_dir,i), 'w') as f:
