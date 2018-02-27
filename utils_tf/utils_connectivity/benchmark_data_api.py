@@ -106,8 +106,6 @@ def data_api_from_file(
                 num_channels,
                 numdev)
 
-        nextbatch = iterator.get_next()
-
     # Define graph
     returnValue = []
     for dev_ind in range(numdev):
@@ -115,7 +113,7 @@ def data_api_from_file(
         print("device %s" % dev)
         with tf.device(devlist[dev_ind]):
             with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                images, labels = nextbatch
+                images, labels = iterator.get_next()
                 images = tf.reshape(images, [batchsize, imgsize, imgsize, num_channels])
                 returnValue.append(images[0,0,0,0])
 
