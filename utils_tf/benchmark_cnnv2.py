@@ -122,7 +122,9 @@ def benchmark_cnn(
         print("device %s" % dev)
         with tf.device(devlist[dev_ind]):
             with tf.name_scope('tower_%d' % (dev_ind)) as scope:
-                images,labels = iterator.get_next()
+                images, labels = iterator.get_next()
+                if not data_in_mem:
+                    images = tf.reshape(images, [batchsize, imgsize, imgsize, num_channels])
                 loss, logits = cnn_multidevicev3.build_model(
                         images,
                         labels,
@@ -148,7 +150,7 @@ def benchmark_cnn(
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         if not data_in_mem:
-            sess.run(it.initializer, feed_dict={filenames: file_list})
+            sess.run(iterator.initializer, feed_dict={filenames: file_list})
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)
