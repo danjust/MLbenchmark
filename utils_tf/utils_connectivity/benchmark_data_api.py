@@ -139,9 +139,9 @@ def data_api_from_file(
                 if i%(logstep)==0:
                     t = time.time()
                     print("Data from file: %.2f sec, step %d, %.2f images per sec" %(
-                            time.time()-t_start,
+                            t-t_start,
                             i,
-                            batchsize*logstep*numdev/(time.time-t_step)))
+                            batchsize*logstep*numdev/(t-t_step)))
                     t_step = t
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
