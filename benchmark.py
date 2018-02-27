@@ -80,7 +80,6 @@ parser.add_argument('--iterations_connectivity', type=int, default=1000, help='N
 args = parser.parse_args()
 
 def main(_):
-    print(args.keep_in_mem)
     if args.testMatMul:
         ops = (args.matsize**3
                 + (args.matsize-1)*args.matsize**2)

@@ -71,7 +71,7 @@ def data_api_from_memory(
             _ = sess.run(returnValue)
             if logstep > 0:
                 if i%(logstep)==0:
-                    print("%.2f sec, step %d" %(time.time()-t_start, i))
+                    print("Data from memory: %.2f sec, step %d" %(time.time()-t_start, i))
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
                     with open('%s/timeline_step_%d.json' % (log_dir,i), 'w') as f:
@@ -132,7 +132,7 @@ def data_api_from_file(
                     run_metadata=run_metadata)
             if logstep > 0:
                 if i%(logstep)==0:
-                    print("%.2f sec, step %d" %(time.time()-t_start, i))
+                    print("Data from file: %.2f sec, step %d" %(time.time()-t_start, i))
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
                     with open('%s/timeline_step_%d.json' % (log_dir,i), 'w') as f:
