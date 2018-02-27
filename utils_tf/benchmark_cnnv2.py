@@ -149,6 +149,7 @@ def benchmark_cnn(
         run_metadata = tf.RunMetadata()
         writer = tf.summary.FileWriter(train_dir, sess.graph, flush_secs=600)
         t_train = time.time()
+        t_step = time.time()
         for i in range(numsteps):
             _, loss_summ = sess.run(
                     [train_op, loss_summary],
@@ -158,8 +159,13 @@ def benchmark_cnn(
             if logstep > 0:
                 if i%logstep==0:
                     writer.add_summary(loss_summ, i)
-                if i%(trackingstep)==0:
-                    print("%.2f sec, step %d" %(time.time()-t_train, i))
+                if i>0 and i%(trackingstep)==0:
+                    t = time.time()
+                    print("%.2f sec, step %d, %.2f images/sec" %(
+                            time.time()-t_train,
+                            i,
+                            trackingstep*batchsize*numdev/(t-t_step)))
+                    t_step = t
                     fetched_timeline = timeline.Timeline(run_metadata.step_stats)
                     chrome_trace = fetched_timeline.generate_chrome_trace_format()
                     with open('%s/timeline_step_%d.json' % (train_dir,i), 'w') as f:
