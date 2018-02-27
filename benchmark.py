@@ -30,7 +30,7 @@ parser.add_argument('--testConnectivity', type=bool, default=False, help='Benchm
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
-parser.add_argument('--data_in_mem', type=bool, default=True, help='Keep all data in memory, only if data_path is set')
+parser.add_argument('--keep_in_mem', type=bool, default=False, help='Keep all data in memory, only if data_path is set')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
@@ -79,8 +79,8 @@ parser.add_argument('--iterations_connectivity', type=int, default=1000, help='N
 
 args = parser.parse_args()
 
-
 def main(_):
+    print(args.keep_in_mem)
     if args.testMatMul:
         ops = (args.matsize**3
                 + (args.matsize-1)*args.matsize**2)
@@ -158,7 +158,7 @@ def main(_):
                 args.imgsize,
                 args.numsteps_cnn,
                 args.batchsize_cnn,
-                args.data_in_mem,
+                args.keep_in_mem,
                 args.logstep,
                 args.trackingstep,
                 args.num_gpu,
@@ -195,7 +195,7 @@ def main(_):
                 args.devlist,
                 args.batchsize_input,
                 args.data_file,
-                args.data_in_mem,
+                args.keep_in_mem,
                 args.num_trainimg,
                 args.imgsize,
                 args.precision,

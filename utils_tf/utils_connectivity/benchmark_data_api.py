@@ -21,7 +21,6 @@ def data_api_from_memory(
 
         if data_file=='':
             gen_data = True
-            data_in_mem = True
         else:
             gen_data = False
             imgsize = 32

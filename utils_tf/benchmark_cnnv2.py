@@ -46,7 +46,7 @@ def benchmark_cnn(
 
 
     if data_file=='':
-        data_in_mem = True
+        #data_in_mem = True
         gen_data = True
         num_channels = 1
         num_classes = 2
