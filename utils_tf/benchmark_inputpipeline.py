@@ -64,12 +64,12 @@ def benchmark_pipeline(
                     batchsize,
                     data_file,
                     devlist,
-                    num_trainimg,
                     imgsize,
                     numsteps,
                     log_dir,
                     logstep,
                     datatype)
+
 
     else:
         print("Pipeline has to be of feed_dict, queue_runner or dataset")

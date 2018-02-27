@@ -90,6 +90,8 @@ def data_api_from_file(
         log_dir,
         logstep,
         datatype):
+    num_channels = 3
+    data_file = data_file.split(',')
 
     with tf.device('/cpu:0'):
         numdev = len(devlist)
@@ -120,7 +122,7 @@ def data_api_from_file(
 
     # Run model
     with tf.Session() as sess:
-        sess.run(it.initializer, feed_dict={filenames: data_file})
+        sess.run(iterator.initializer, feed_dict={filenames: data_file})
         sess.run(tf.global_variables_initializer())
         options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
         run_metadata = tf.RunMetadata()

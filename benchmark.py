@@ -18,19 +18,19 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 parser = argparse.ArgumentParser('Benchmarking different aspects of a machine learning algorithm')
 
 # Benchmarks to perform
-parser.add_argument('--testMatMul', type=bool, default=False, help='Benchmark matrix multiplication')
-parser.add_argument('--testConv', type=bool, default=False, help='Benchmark 2D convolution')
-parser.add_argument('--testRNN', type=bool, default=False, help='Benchmark recurrent neural networks')
-parser.add_argument('--testCNN', type=bool, default=False, help='Benchmark a cnn training')
-parser.add_argument('--testLatency', type=bool, default=False, help='Benchmark the latency of a Device')
-parser.add_argument('--testPipeline', type=bool, default=False, help='Benchmark the data pipeline')
-parser.add_argument('--testConnectivity', type=bool, default=False, help='Benchmark the conncetion speed of a list of devices')
+parser.add_argument('--testMatMul', action="store_true", default=False, help='Benchmark matrix multiplication')
+parser.add_argument('--testConv', action="store_true", default=False, help='Benchmark 2D convolution')
+parser.add_argument('--testRNN', action="store_true", default=False, help='Benchmark recurrent neural networks')
+parser.add_argument('--testCNN', action="store_true", default=False, help='Benchmark a cnn training')
+parser.add_argument('--testLatency', action="store_true", default=False, help='Benchmark the latency of a Device')
+parser.add_argument('--testPipeline', action="store_true", default=False, help='Benchmark the data pipeline')
+parser.add_argument('--testConnectivity', action="store_true", default=False, help='Benchmark the conncetion speed of a list of devices')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
-parser.add_argument('--keep_in_mem', type=bool, default=False, help='Keep all data in memory, only if data_path is set')
+parser.add_argument('--keep_in_mem', action="store_true", default=False, help='Keep all data in memory, only if data_path is set')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')

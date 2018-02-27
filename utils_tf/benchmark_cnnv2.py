@@ -153,15 +153,14 @@ def benchmark_cnn(
                     [train_op, loss_summary],
                     options=options,
                     run_metadata=run_metadata)
-
-            if logstep > 0:
+            if i==0:
+                print("start")
+                t_train = time.time()
+                t_step = time.time()
+            elif logstep > 0:
                 if i%logstep==0:
                     writer.add_summary(loss_summ, i)
-                if i==0:
-                    print("start")
-                    t_train = time.time()
-                    t_step = time.time()
-                elif i%(trackingstep)==0:
+                if i%(trackingstep)==0:
                     t = time.time()
                     print("%.2f sec, step %d, %.2f images/sec" %(
                             time.time()-t_train,
