@@ -7,7 +7,8 @@ import tensorflow as tf
 import numpy as np
 import time
 from tensorflow.python.client import timeline
-from utils_tf.utils_cnn import cnn_multidevicev3, build_datasetv2, average_gradients
+from utils_tf.utils_cnn import cnn_multidevicev3, average_gradients
+from utils_tf.utils_data import build_dataset
 
 def benchmark_cnn(
         num_layers,
@@ -27,7 +28,7 @@ def benchmark_cnn(
         trackingstep,
         num_gpu,
         devlist,
-        data_dir,
+        data_file,
         train_dir):
 
     if devlist=='':
@@ -43,31 +44,40 @@ def benchmark_cnn(
     datatype = "float%d" %precision
 
 
-    if data_dir=='':
-        gen_data=True
-        num_channels=1
-        num_classes=2
+    if data_file=='':
+        gen_data = True
+        num_channels = 1
+        num_classes = 2
     else:
-        gen_data=False
-        imgsize=32
-        num_channels=3
-        num_classes=10
+        gen_data = False
+        imgsize = 32
+        num_channels = 3
+        num_classes = 10
 
 
     # Generate the dataset and build the queue
     with tf.device('/cpu:0'):
         if gen_data==True:
-            train_data, test_data = build_datasetv2.build_dataset(
+            trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
                     num_trainimg,
                     num_testimg,
                     imgsize,
                     datatype)
         elif gen_data==False:
-            train_data, test_data = build_datasetv2.import_cifar(data_dir)
+            trainimg, trainlabel = build_dataset.load_full_dataset(
+                    data_file,
+                    imgsize,
+                    imgsize)
 
+        # Generate tf.data dataset
+        train_data = tf.data.Dataset.from_tensor_slices((trainimg, trainlabel))
+        # Repeat data indefinetely
         train_data = train_data.repeat()
+        # Shuffle data
         train_data = train_data.shuffle(5*batchsize)
+        # Prepare batches
         train_batch = train_data.batch(batchsize)
+        # Create an iterator
         iterator = train_batch.make_one_shot_iterator()
         next_batch = iterator.get_next()
 

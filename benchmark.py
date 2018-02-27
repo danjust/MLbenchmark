@@ -30,6 +30,7 @@ parser.add_argument('--testConnectivity', type=bool, default=False, help='Benchm
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
+parser.add_argument('--data_in_mem', type=bool, default=True, help='Keep all data in memory, only if data_path is set')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
@@ -48,14 +49,14 @@ parser.add_argument('--num_classes', type=int, default=10, help='Number of targe
 parser.add_argument('--iter_rnn', type=int, default=10, help='Number of iterations for RNNs')
 
 # Parameters for CNNs
-parser.add_argument('--data_dir', type=str, default='', help='directory of image data, leave empty for synthetic data')
+parser.add_argument('--data_file', type=str, default='', help='.tfrecords file with image data, leave empty for synthetic data')
 parser.add_argument('--train_dir', type=str, default='/tmp/train', help='directory for logging')
 parser.add_argument('--num_layers_cnn', type=int, default=3, help='Number of convolution/pooling layers in CNN')
 parser.add_argument('--num_features', type=int, nargs='+', default=[16,64,128], help='Vector containing the number of features in each convolutional layer')
 parser.add_argument('--kernel_cnn', type=int, nargs='+', default=[5,3,3], help='Vector containing the kernelsize in each convolutional layer')
 parser.add_argument('--pooling_cnn', type=int, nargs='+', default=[2,2,2], help='Vector containing the size of max pooling in each pooling layer')
 parser.add_argument('--fully_connected_size', type=int, default=256, help='Number of neurons in fully connected layer')
-parser.add_argument('--num_trainimg', type=int, default=1000000, help='Number of training images if synthetic data')
+parser.add_argument('--num_trainimg', type=int, default=10000, help='Number of training images if synthetic data')
 parser.add_argument('--num_testimg', type=int, default=10000, help='Number of validation images if synthetic data')
 parser.add_argument('--logstep', type=int, default=500, help='write log at these steps (0 to disable logging)')
 parser.add_argument('--trackingstep', type=int, default=5000, help='write tracking at these steps (0 to disable logging)')
@@ -161,7 +162,7 @@ def main(_):
                 args.trackingstep,
                 args.num_gpu,
                 args.devlist,
-                args.data_dir,
+                args.data_file,
                 args.train_dir)
         print("========================================\n")
         numdev=max(1,args.num_gpu)
@@ -192,7 +193,8 @@ def main(_):
                 args.num_gpu,
                 args.devlist,
                 args.batchsize_input,
-                args.data_dir,
+                args.data_file,
+                args.data_in_mem,
                 args.num_trainimg,
                 args.imgsize,
                 args.precision,

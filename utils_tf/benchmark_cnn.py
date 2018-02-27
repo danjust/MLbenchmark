@@ -7,7 +7,8 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.python.client import timeline
 import time
-from utils_tf.utils_cnn import cnn_multidevice, build_dataset
+from utils_tf.utils_cnn import cnn_multidevice
+from utils_tf.utils_data import build_dataset
 
 def benchmark_cnn(
         num_layers,
@@ -25,7 +26,7 @@ def benchmark_cnn(
         logstep,
         num_gpu,
         devlist,
-        data_dir,
+        data_file,
         train_dir):
 
     if devlist=='':
@@ -36,7 +37,7 @@ def benchmark_cnn(
     else:
         devlist = devlist.split(',')
 
-    if data_dir=='':
+    if data_file=='':
         gen_data=True
         num_channels=1
         num_classes=2
@@ -66,12 +67,16 @@ def benchmark_cnn(
 
     # Generate the dataset
     if gen_data==True:
-        trainimg, trainlabel, testimg, testlabel = build_dataset.build_dataset(
+        trainimg, trainlabel, testimg, testlabel = build_dataset.generate_data(
                 num_trainimg,
                 num_testimg,
-                imgsize)
+                imgsize,
+                datatype)
     elif gen_data==False:
-        trainimg, trainlabel, testimg, testlabel = build_dataset.import_cifar(data_dir)
+        trainimg, trainlabel = build_dataset.load_full_dataset(
+                data_file,
+                imgsize,
+                imgsize)
 
     acc = np.empty([numsteps,1])
 
