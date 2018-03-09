@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorflow:17.12
+FROM tensorflow/tensorflow:latest-gpu
 
 RUN apt-get update && apt-get install -y git
 
