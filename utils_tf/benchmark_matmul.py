@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 
-def benchmark_matmul(n,iterations,targetFLOPs,num_gpu,devlist,precision):
+def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision):
     # generate list of devices if devlist is empty
     if devlist=='':
         if num_gpu==0:
@@ -17,7 +17,7 @@ def benchmark_matmul(n,iterations,targetFLOPs,num_gpu,devlist,precision):
 
     ops = n**3 + (n-1)*n**2
     if FLOPs>0:
-        iterations = int(np.ceil(targetFLOPs/ops))
+        iterations = int(np.ceil(10^targetFLOPs/ops))
         print("Running %d iterations" %iterations)
 
     datatype = eval('tf.float%d' %(precision))

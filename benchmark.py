@@ -34,7 +34,7 @@ parser.add_argument('--keep_in_mem', action="store_true", default=False, help='K
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
-parser.add_argument('--targetFLOPs', type=int, default=0, help='Number of FLOPs to perform (will be rounded up), overwrites iter, set 0 to use iter')
+parser.add_argument('--logFLOPs', type=int, default=0, help='log10 of number of FLOPs to perform (will be rounded up), overwrites iter, set 0 to use iter')
 parser.add_argument('--matsize', type=int, default=1024, help='Size of each matrix for benchmark')
 parser.add_argument('--kernelsize', type=int, default=15, help='Size of kernel for benchmarking convolution')
 parser.add_argument('--lr_initial', type=float, default=0.0005, help='Initial learning rate')
@@ -91,7 +91,7 @@ def main(_):
         timeUsed = benchmark_matmul.benchmark_matmul(
                 args.matsize,
                 args.iter,
-                args.targetFLOPs,
+                args.logFLOPs,
                 args.num_gpu,
                 args.devlist,
                 args.precision)
