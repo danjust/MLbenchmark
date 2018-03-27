@@ -1,10 +1,11 @@
 """Benchmark matrix multiplication"""
 
 import tensorflow as tf
+inport numpy as np
 import time
 
 
-def benchmark_matmul(n,iterations,num_gpu,devlist,precision):
+def benchmark_matmul(n,iterations,targetFLOPs,num_gpu,devlist,precision):
     # generate list of devices if devlist is empty
     if devlist=='':
         if num_gpu==0:
@@ -13,6 +14,10 @@ def benchmark_matmul(n,iterations,num_gpu,devlist,precision):
             devlist = ['/gpu:%d' %i for i in range(num_gpu)]
     else:
         devlist = devlist.split(',')
+
+    ops = n**3 + (n-1)*n**2
+    if FLOPs>0:
+        iterations = np.ceil(targetFLOPs/ops)
 
     datatype = eval('tf.float%d' %(precision))
 
