@@ -6,7 +6,7 @@ RUN mkdir /model
 WORKDIR /model
 ADD . /model
 
-WORKDIR /model/MLbenchmark
+WORKDIR /model
 
 CMD ["python", "benchmark.py", \
     "--testMatMul=True", \
