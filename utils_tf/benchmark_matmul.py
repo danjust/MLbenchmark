@@ -1,7 +1,7 @@
 """Benchmark matrix multiplication"""
 
 import tensorflow as tf
-inport numpy as np
+import numpy as np
 import time
 
 
@@ -17,7 +17,8 @@ def benchmark_matmul(n,iterations,targetFLOPs,num_gpu,devlist,precision):
 
     ops = n**3 + (n-1)*n**2
     if FLOPs>0:
-        iterations = np.ceil(targetFLOPs/ops)
+        iterations = int(np.ceil(targetFLOPs/ops))
+        print("Running %d iterations" %iterations)
 
     datatype = eval('tf.float%d' %(precision))
 
