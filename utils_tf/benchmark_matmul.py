@@ -16,8 +16,8 @@ def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision):
         devlist = devlist.split(',')
 
     ops = n**3 + (n-1)*n**2
-    if FLOPs>0:
-        iterations = int(np.ceil(10^targetFLOPs/ops))
+    if logFLOPs>0:
+        iterations = int(np.ceil(10^logFLOPs/ops))
         print("Running %d iterations" %iterations)
 
     datatype = eval('tf.float%d' %(precision))
