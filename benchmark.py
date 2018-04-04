@@ -4,6 +4,7 @@ Using TensorFlow
 import os
 import argparse
 import tensorflow as tf
+import time
 from  utils_tf import benchmark_matmul
 from  utils_tf import benchmark_conv
 from  utils_tf import benchmark_rnn
@@ -31,6 +32,8 @@ parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to us
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
 parser.add_argument('--keep_in_mem', action="store_true", default=False, help='Keep all data in memory, only if data_path is set')
+parser.add_argument('--precision', type=int, default=32, help='Precision')
+parser.add_argument('--logfile', type=str, default='', help='Text file to store results')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
@@ -81,6 +84,10 @@ parser.add_argument('--iterations_connectivity', type=int, default=1000, help='N
 args = parser.parse_args()
 
 def main(_):
+    if args.logfile == '':
+        logfile = str('benchmark_log_%s' %time.strftime("%Y%m%d_%H%M%S").txt)
+    else:
+        logfile = args.logfile
     if args.testMatMul:
         ops = (args.matsize**3
                 + (args.matsize-1)*args.matsize**2)
@@ -94,7 +101,8 @@ def main(_):
                 args.logFLOPs,
                 args.num_gpu,
                 args.devlist,
-                args.precision)
+                args.precision,
+                logfile)
         print("\n%d x %d matrix multiplication (float%d): %.2f GFLOPS (%.2f matrices per sec)"
                 % (args.matsize,
                 args.matsize,

@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 
-def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision):
+def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision,logfile):
     # generate list of devices if devlist is empty
     if devlist=='':
         if num_gpu==0:
@@ -45,4 +45,15 @@ def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision):
         t = time.time()
         for _ in range(iterations):
             sess.run(prod.op)
-    return (time.time()-t)/iterations
+        dur = time.time()-t
+        if num_gpu>=1:
+            mem = sess.run(tf.contrib.memory_stats.MaxBytesInUse())
+            logtext = ('%d x %d matrix multiplication (%d bit): %.3f GFLOPs / sec, %.3f MB memory use\n'
+            %(n,n,precision,ops*1e-9/timeUsed,mem/1e6))
+        else:
+            logtext = ('%d x %d matrix multiplication (%d bit): %.3f GFLOPs / sec'
+            %(n,n,precision,ops*1e-9/timeUsed))
+        f = open(logfile,'a+')
+        f.write(logtext)
+
+    return dur/iterations
