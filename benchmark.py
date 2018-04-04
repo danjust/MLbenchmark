@@ -32,7 +32,6 @@ parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to us
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
 parser.add_argument('--keep_in_mem', action="store_true", default=False, help='Keep all data in memory, only if data_path is set')
-parser.add_argument('--precision', type=int, default=32, help='Precision')
 parser.add_argument('--logfile', type=str, default='', help='Text file to store results')
 
 # Parameters for matrix multiplication / convolution
