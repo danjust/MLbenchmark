@@ -48,11 +48,11 @@ def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision,logfile):
         timeUsed = (time.time()-t)/iterations
         if num_gpu>=1:
             mem = sess.run(tf.contrib.memory_stats.MaxBytesInUse())
-            logtext = ('%d x %d matrix multiplication (%d bit): %.3f GFLOPs / sec, %.3f MB memory use\n'
-            %(n,n,precision,ops*1e-9/timeUsed,mem/1e6))
+            logtext = ('matrix multiplication, %d, %d, %.3f, %.3f\n'
+            %(n,precision,ops*1e-9/timeUsed,mem/1e6))
         else:
-            logtext = ('%d x %d matrix multiplication (%d bit): %.3f GFLOPs / sec'
-            %(n,n,precision,ops*1e-9/timeUsed))
+            logtext = ('matrix multiplication, %d, %d, %.3f, 0\n'
+            %(n,precision,ops*1e-9/timeUsed))
         f = open(logfile,'a+')
         f.write(logtext)
         f.close()

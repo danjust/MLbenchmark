@@ -84,9 +84,15 @@ args = parser.parse_args()
 
 def main(_):
     if args.logfile == '':
-        logfile = str('benchmark_log_%s' %time.strftime("%Y%m%d_%H%M%S").txt)
+        logfile = str('benchmark_log_%s.txt' %time.strftime("%Y%m%d_%H%M%S"))
     else:
         logfile = args.logfile
+    if not os.path.isfile(logfile):
+        header = 'operation, matsize, precision (bits), performance (GFLOPs/sec), memory use (MB)\n'
+        f = open(logfile,'a+')
+        f.write(header)
+        f.close()
+
     if args.testMatMul:
         ops = (args.matsize**3
                 + (args.matsize-1)*args.matsize**2)
