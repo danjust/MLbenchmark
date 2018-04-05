@@ -84,7 +84,7 @@ args = parser.parse_args()
 
 def main(_):
     if args.logfile == '':
-        logfile = str('benchmark_log_%s.txt' %time.strftime("%Y%m%d_%H%M%S"))
+        logfile = str('benchmark_log_%s.csv' %time.strftime("%Y%m%d_%H%M%S"))
     else:
         logfile = args.logfile
     if not os.path.isfile(logfile):
