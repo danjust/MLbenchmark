@@ -50,7 +50,7 @@ def benchmark_VGG16(
 
     img_per_sec = (iterations*batchsize)/dur
 
-    logtext = ('VGG-16, %d, %d, %d, %.3f, 0\n'
+    logtext = ('VGG-16, %d, %d, %d, %.3f\n'
     %(imgwidth,precision,batchsize,img_per_sec))
     f = open(logfile,'a+')
     f.write(logtext)
