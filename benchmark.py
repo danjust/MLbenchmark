@@ -12,6 +12,7 @@ from  utils_tf import benchmark_cnnv2
 from  utils_tf import benchmark_latency
 from  utils_tf import benchmark_inputpipeline
 from  utils_tf import benchmark_connectivity
+from  utils_keras import benchmark_VGG16
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
@@ -26,6 +27,7 @@ parser.add_argument('--testCNN', action="store_true", default=False, help='Bench
 parser.add_argument('--testLatency', action="store_true", default=False, help='Benchmark the latency of a Device')
 parser.add_argument('--testPipeline', action="store_true", default=False, help='Benchmark the data pipeline')
 parser.add_argument('--testConnectivity', action="store_true", default=False, help='Benchmark the conncetion speed of a list of devices')
+parser.add_argument('--testVGG16', action="store_true", default=False, help='Benchmark training VGG-16 on sythetic data')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
@@ -33,6 +35,7 @@ parser.add_argument('--devlist', type=str, default='', help='List of devices to 
 parser.add_argument('--precision', type=int, default=32, help='Precision')
 parser.add_argument('--keep_in_mem', action="store_true", default=False, help='Keep all data in memory, only if data_path is set')
 parser.add_argument('--logfile', type=str, default='', help='Text file to store results')
+parser.add_argument('--device', type=str, default='', help='Device name as appearing in logfile')
 
 # Parameters for matrix multiplication / convolution
 parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
@@ -66,6 +69,8 @@ parser.add_argument('--trackingstep', type=int, default=5000, help='write tracki
 parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
 parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
 parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
+parser.add_argument('--numclasses', type=int, default=1000, help='Number of image classes')
+parser.add_argument('--optimizer', type=str, default='sgd', help='Optimzer used for VGG-16 (sgd or rmsprop)')
 
 
 parser.add_argument('--iterations_latency', type=int, default=100000, help='Number of iterations for latency')
@@ -83,17 +88,17 @@ parser.add_argument('--iterations_connectivity', type=int, default=1000, help='N
 args = parser.parse_args()
 
 def main(_):
-    if args.logfile == '':
-        logfile = str('benchmark_log_%s.csv' %time.strftime("%Y%m%d_%H%M%S"))
-    else:
-        logfile = args.logfile
-    if not os.path.isfile(logfile):
-        header = 'operation, matsize, precision (bits), performance (GFLOPs/sec), memory use (MB)\n'
-        f = open(logfile,'a+')
-        f.write(header)
-        f.close()
 
     if args.testMatMul:
+        if args.logfile == '':
+            logfile = str('benchmark_matmul_%s_%s.csv' %(args.device, time.strftime("%Y%m%dS")))
+        else:
+            logfile = args.logfile
+        if not os.path.isfile(logfile):
+            header = 'operation, matsize, precision (bits), performance (GFLOPs/sec), memory use (MB)\n'
+            f = open(logfile,'a+')
+            f.write(header)
+            f.close()
         ops = (args.matsize**3
                 + (args.matsize-1)*args.matsize**2)
                 # matsize**3 multiplications,
@@ -229,5 +234,35 @@ def main(_):
                 args.matsize_connectivity,
                 args.matsize_connectivity,
                 args.iterations_connectivity)
+
+if args.testVGG16:
+    if args.logfile == '':
+        logfile = str('benchmark_VGG16_%s_%s.csv' %(args.device, time.strftime("%Y%m%dS")))
+    else:
+        logfile = args.logfile
+    if not os.path.isfile(logfile):
+        header = 'operation, imsize, precision (bits), batchsize, performance (img/sec)\n'
+        f = open(logfile,'a+')
+        f.write(header)
+        f.close()
+
+    print("========================================\n")
+    print("Start training VGG-16")
+    img_per_sec = benchmark_VGG16.benchmark_VGG16(
+            args.matsize,
+            args.matsize,
+            args.numclasses,
+            args.optimizer,
+            args.iter,
+            args.batchsize_cnn,
+            args.precision,
+            logfile)
+    print("\nTraining VGG-16 (%dx%d pixel, float%d, batchsize %d): %.2f images per sec)"
+            % (args.matsize,
+            args.matsize,
+            args.precision,
+            args.batchsize_cnn,
+            img_per_sec))
+
 if __name__ == '__main__':
   tf.app.run()

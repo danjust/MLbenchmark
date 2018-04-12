@@ -1,0 +1,2 @@
+operation, imsize, precision (bits), batchsize, performance (img/sec)
+VGG-16, 100, 32, 32, 4.066, 0
