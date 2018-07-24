@@ -1,60 +1,60 @@
 """Benchmark matrix multiplication"""
 
 import tensorflow as tf
+from tensorflow.python.client import timeline
 import numpy as np
 import time
+from utils_tf import merge_timeline
+
+class gemm(object):
+    """Class for gerenating the benchmark operations"""
+
+    def __init__(self, args, devlist):
+        """Initialize gemm
+
+        Args:
+            args: Input arguments
+            devlist: List of GPUs / CPUs (list)
+        """
+
+        self.matsize = args.matsize
+        self.precision = args.precision
+        self.comment = args.comment
+        self.devlist = devlist
 
 
-def benchmark_matmul(n,iterations,logFLOPs,num_gpu,devlist,precision,logfile):
-    # generate list of devices if devlist is empty
-    if devlist=='':
-        if num_gpu==0:
-            devlist = ['/cpu:0']
-        else:
-            devlist = ['/gpu:%d' %i for i in range(num_gpu)]
-    else:
-        devlist = devlist.split(',')
+    def create_benchmark_op(self):
+        """Create benchmark operation
 
-    ops = n**3 + (n-1)*n**2
-    if logFLOPs>0:
-        iterations = int(np.ceil(10**logFLOPs/ops))
-        print("Running %d iterations" %iterations)
+        Returns:
+            prog.op: Operation for multiplying two matrices
+            g: TensorFlow graph
+        """
 
-    datatype = eval('tf.float%d' %(precision))
+        datatype = eval('tf.float%d' %(self.precision))
 
-    for dev in devlist:
-        with tf.device(dev):
-            matA = tf.Variable(tf.ones([n,n],dtype=datatype))
-            matB = tf.Variable(tf.ones([n,n],dtype=datatype))
-            prod = tf.matmul(matA,matB)
+        g = tf.Graph()
+        with g.as_default():
+            for dev in self.devlist:
+                with tf.device(dev):
+                    matA = tf.Variable(
+                            tf.ones([self.matsize,self.matsize],
+                            dtype=datatype))
+                    matB = tf.Variable(
+                            tf.ones([self.matsize,self.matsize],
+                            dtype=datatype))
+                    prod = tf.matmul(matA,matB)
 
-    # Creates the session
-    config = tf.ConfigProto(
-            graph_options=tf.GraphOptions(
-                    optimizer_options=tf.OptimizerOptions(
-                            opt_level=tf.OptimizerOptions.L0)),
-            log_device_placement=False)
+        return prod.op, g
 
-    with tf.Session(config=config) as sess:
-        sess.run(tf.global_variables_initializer())
 
-        # Warm-up run
-        sess.run(prod.op)
+    def generate_logtext(self, timeUsed, ops, mem):
+        """Function that generates comma separated text for a logfile"""
 
-        # Benchmark run
-        t = time.time()
-        for _ in range(iterations):
-            sess.run(prod.op)
-        timeUsed = (time.time()-t)/iterations
-        if num_gpu>=1:
-            mem = sess.run(tf.contrib.memory_stats.MaxBytesInUse())
-            logtext = ('matrix multiplication, %d, %d, %.3f, %.3f\n'
-            %(n,precision,ops*1e-9/timeUsed,mem/1e6))
-        else:
-            logtext = ('matrix multiplication, %d, %d, %.3f, 0\n'
-            %(n,precision,ops*1e-9/timeUsed))
-        f = open(logfile,'a+')
-        f.write(logtext)
-        f.close()
-
-    return timeUsed
+        logtext = ('matrix multiplication, %d, %d, %.3f, %.3f, %s\n'
+                %(self.matsize,
+                self.precision,
+                ops*1e-9/timeUsed,
+                mem/1e6,
+                self.comment))
+        return logtext

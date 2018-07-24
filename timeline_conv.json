@@ -1,0 +1,164 @@
+{
+    "traceEvents": [
+        {
+            "name": "process_name",
+            "ph": "M",
+            "pid": 0,
+            "args": {
+                "name": "Allocators"
+            }
+        },
+        {
+            "name": "process_name",
+            "ph": "M",
+            "pid": 1,
+            "args": {
+                "name": "/job:localhost/replica:0/task:0/device:CPU:0 Compute"
+            }
+        },
+        {
+            "name": "process_name",
+            "ph": "M",
+            "pid": 2,
+            "args": {
+                "name": "/job:localhost/replica:0/task:0/device:CPU:0 Tensors"
+            }
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "NoOp",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177718,
+            "dur": 35,
+            "args": {
+                "name": "_SOURCE",
+                "op": "NoOp"
+            }
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "VariableV2",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177787,
+            "dur": 12,
+            "args": {
+                "name": "Variable",
+                "op": "VariableV2"
+            }
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "VariableV2",
+            "pid": 1,
+            "tid": 1,
+            "ts": 1527844900177776,
+            "dur": 33,
+            "args": {
+                "name": "Variable_1",
+                "op": "VariableV2"
+            }
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "Identity",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177812,
+            "dur": 5,
+            "args": {
+                "name": "Variable_1/read",
+                "op": "Identity",
+                "input0": "Variable_1"
+            }
+        },
+        {
+            "ph": "s",
+            "cat": "DataFlow",
+            "name": "Variable_1",
+            "pid": 1,
+            "tid": 1,
+            "ts": 1527844900177809,
+            "id": 0
+        },
+        {
+            "ph": "t",
+            "cat": "DataFlow",
+            "name": "Variable_1",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177812,
+            "id": 0
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "Identity",
+            "pid": 1,
+            "tid": 1,
+            "ts": 1527844900177812,
+            "dur": 5,
+            "args": {
+                "name": "Variable/read",
+                "op": "Identity",
+                "input0": "Variable"
+            }
+        },
+        {
+            "ph": "s",
+            "cat": "DataFlow",
+            "name": "Variable",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177799,
+            "id": 1
+        },
+        {
+            "ph": "t",
+            "cat": "DataFlow",
+            "name": "Variable",
+            "pid": 1,
+            "tid": 1,
+            "ts": 1527844900177812,
+            "id": 1
+        },
+        {
+            "ph": "X",
+            "cat": "Op",
+            "name": "Conv2D",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177819,
+            "dur": 66450,
+            "args": {
+                "name": "Conv2D",
+                "op": "Conv2D",
+                "input0": "Variable/read",
+                "input1": "Variable_1/read"
+            }
+        },
+        {
+            "ph": "s",
+            "cat": "DataFlow",
+            "name": "Variable/read",
+            "pid": 1,
+            "tid": 1,
+            "ts": 1527844900177817,
+            "id": 2
+        },
+        {
+            "ph": "t",
+            "cat": "DataFlow",
+            "name": "Variable/read",
+            "pid": 1,
+            "tid": 0,
+            "ts": 1527844900177819,
+            "id": 2
+        }
+    ]
+}

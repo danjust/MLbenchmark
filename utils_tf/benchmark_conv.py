@@ -1,48 +1,111 @@
 """Benchmark convolution"""
 
 import tensorflow as tf
-import time
 
 
-def benchmark_conv(n,kernelsize,iterations,num_gpu,devlist,precision):
-    # generate list of devices if devlist is empty
-    if devlist=='':
-        if num_gpu==0:
-            devlist = ['/cpu:0']
-        else:
-            devlist = ['/gpu:%d' %i for i in range(num_gpu)]
-    else:
-        devlist = devlist.split(',')
+class convolution(object):
+    """Class for gerenating the benchmark operations"""
 
-    datatype = eval('tf.float%d' %(precision))
+    def __init__(self, args, devlist):
+        """Initialize convolution
 
-    for dev in devlist:
-        with tf.device(dev):
-            matA = tf.Variable(tf.ones([1,n,n,1],dtype=datatype))
-            kernel = tf.Variable(
-                    tf.ones([kernelsize,kernelsize,1,1],
-                    dtype=datatype))
-            conv = tf.nn.conv2d(
-                    input=matA,filter=kernel,
-                    strides=[1,1,1,1],
-                    padding="VALID")
+        Args:
+            args: Input arguments
+            devlist: List of GPUs / CPUs (list)
+        """
 
-    # Creates the session
-    config = tf.ConfigProto(
-            graph_options=tf.GraphOptions(
-                    optimizer_options=tf.OptimizerOptions(
-                            opt_level=tf.OptimizerOptions.L0)),
-            log_device_placement=False)
+        self.matsize = args.matsize
+        self.kernelsize = args.kernelsize
+        self.channels_in = args.channels_in
+        self.channels_out = args.channels_out
+        self.batchsize = args.batchsize
+        self.padding = args.padding
+        self.precision = args.precision
+        self.comment = args.comment
+        self.devlist = devlist
 
 
-    with tf.Session(config=config) as sess:
-        sess.run(tf.global_variables_initializer())
+    def create_benchmark_op1(self):
+        """Create benchmark operation using tf.layer
 
-        # Warm-up run
-        sess.run(conv.op)
+        Returns:
+            conv.op: Operation for convolution
+            g: TensorFlow graph
+        """
 
-        # Benchmark run
-        t = time.time()
-        for _ in range(iterations):
-            sess.run(conv.op)
-    return (time.time()-t)/iterations
+        datatype = eval('tf.float%d' %(self.precision))
+
+        g = tf.Graph()
+        run_metadata = tf.RunMetadata()
+        with g.as_default():
+            for dev in self.devlist:
+                with tf.device(dev):
+                    matA = tf.Variable(
+                            tf.ones([
+                                    self.batchsize,
+                                    self.matsize,
+                                    self.matsize,
+                                    self.channels_in],
+                            dtype=datatype))
+                    conv = tf.layers.conv2d(
+                            inputs=matA,
+                            filters=self.channels_out,
+                            kernel_size=self.kernelsize,
+                            padding=self.padding)
+
+        return conv.op, g
+
+    def create_benchmark_op2(self):
+        """Create benchmark operation using tf.nn
+
+        Returns:
+            conv.op: Operation for convolution
+            g: TensorFlow graph
+        """
+
+        datatype = eval('tf.float%d' %(self.precision))
+
+        g = tf.Graph()
+        run_metadata = tf.RunMetadata()
+        with g.as_default():
+            for dev in self.devlist:
+                with tf.device(dev):
+                    matA = tf.Variable(
+                            tf.ones([
+                                    self.batchsize,
+                                    self.matsize,
+                                    self.matsize,
+                                    self.channels_in],
+                            dtype=datatype))
+                    kernel = tf.Variable(
+                            tf.ones([
+                                    self.kernelsize,
+                                    self.kernelsize,
+                                    self.channels_in,
+                                    self.channels_out],
+                            dtype=datatype))
+                    conv = tf.nn.conv2d(
+                            input=matA,
+                            filter=kernel,
+                            strides=[1,1,1,1],
+                            padding=self.padding)
+
+        return conv.op, g
+
+
+    def generate_logtext(self, timeUsed, ops, mem):
+        """Function that generates comma separated text for a logfile"""
+
+        logtext = ('convolution, %d, %d, %d, %d, %d, %d, %.3f, %.3f, %.3f, %s\n'
+                %(self.matsize,
+                self.batchsize,
+                self.kernelsize,
+                self.channels_in,
+                self.channels_out,
+                self.precision,
+                timeUsed*1000,
+                ops*1e-9/timeUsed,
+                mem/1e6,
+                self.comment))
+
+        return logtext

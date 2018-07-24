@@ -1,18 +1,15 @@
-"""Benchmark script for frequently used machine learning operations
-Using TensorFlow
+"""Benchmark script for frequently used machine learning
+operations and VGG16 as example of a typical CNN.
+
+Using TensorFlow and Keras with TensorFlow backend
 """
 import os
 import argparse
 import tensorflow as tf
 import time
-from  utils_tf import benchmark_matmul
-from  utils_tf import benchmark_conv
-from  utils_tf import benchmark_rnn
-from  utils_tf import benchmark_cnnv2
-from  utils_tf import benchmark_latency
-from  utils_tf import benchmark_inputpipeline
-from  utils_tf import benchmark_connectivity
-from  utils_keras import benchmark_VGG16
+from utils_tf import benchmark_matmul, benchmark_conv, benchmark_VGG16
+from utils_tf import run_benchmark
+
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # or any {'0', '1', '2'}
 
@@ -22,247 +19,250 @@ parser = argparse.ArgumentParser('Benchmarking different aspects of a machine le
 # Benchmarks to perform
 parser.add_argument('--testMatMul', action="store_true", default=False, help='Benchmark matrix multiplication')
 parser.add_argument('--testConv', action="store_true", default=False, help='Benchmark 2D convolution')
-parser.add_argument('--testRNN', action="store_true", default=False, help='Benchmark recurrent neural networks')
-parser.add_argument('--testCNN', action="store_true", default=False, help='Benchmark a cnn training')
-parser.add_argument('--testLatency', action="store_true", default=False, help='Benchmark the latency of a Device')
-parser.add_argument('--testPipeline', action="store_true", default=False, help='Benchmark the data pipeline')
-parser.add_argument('--testConnectivity', action="store_true", default=False, help='Benchmark the conncetion speed of a list of devices')
 parser.add_argument('--testVGG16', action="store_true", default=False, help='Benchmark training VGG-16 on sythetic data')
 
 # General parameters
 parser.add_argument('--num_gpu', type=int, default=1, help='Number of GPUs to use')
 parser.add_argument('--devlist', type=str, default='', help='List of devices to use, overwrites num_gpu if set')
 parser.add_argument('--precision', type=int, default=32, help='Precision')
-parser.add_argument('--keep_in_mem', action="store_true", default=False, help='Keep all data in memory, only if data_path is set')
 parser.add_argument('--logfile', type=str, default='', help='Text file to store results')
 parser.add_argument('--device', type=str, default='', help='Device name as appearing in logfile')
+parser.add_argument('--use_tf_profiler', action="store_true", default=False, help='Calculate number of FLOPs with ft profiler')
+parser.add_argument('--iter_benchmark', type=int, default=200, help='Number of iterations for benchmark')
+parser.add_argument('--iter_timeline', type=int, default=10, help='Number of iterations for timeline')
+parser.add_argument('--iter_warmup', type=int, default=10, help='Number of iterations for warm-up')
+parser.add_argument('--batchsize', type=int, default=128, help='Batch size for convolutions / training CNN')
+parser.add_argument('--no_saving', action="store_true", default=False, help='save benchmarking results to csv')
+parser.add_argument('--no_timeline', action="store_true", default=False, help='Make tf timeline')
+parser.add_argument('--comment', type=str, default='', help='Comment in logfile')
 
-# Parameters for matrix multiplication / convolution
-parser.add_argument('--iter', type=int, default=10, help='Number of iterations')
-parser.add_argument('--logFLOPs', type=int, default=0, help='log10 of number of FLOPs to perform (will be rounded up), overwrites iter, set 0 to use iter')
+# Parameters for matrix multiplication / 2D convolution
+parser.add_argument('--logFLOPs', type=int, default=0, help='log10 of number of FLOPs to perform (will be rounded up), overwrites iter_benchmark, set 0 to use iter')
 parser.add_argument('--matsize', type=int, default=1024, help='Size of each matrix for benchmark')
-parser.add_argument('--kernelsize', type=int, default=15, help='Size of kernel for benchmarking convolution')
-parser.add_argument('--lr_initial', type=float, default=0.0005, help='Initial learning rate')
-parser.add_argument('--lr_decay', type=float, default=0.95, help='Learning rate decay')
-
-# Parameters for RNNs
-parser.add_argument('--rnn_type', type=str, default='rnn', help='Type of RNN (rnn or lstm)')
-parser.add_argument('--seq_length', type=int, default=50, help='Length of sequence')
-parser.add_argument('--batch_size_rnn', type=int, default=64, help='Batch size')
-parser.add_argument('--num_samples', type=int, default=10000, help='Total number of samples of length seq_length')
-parser.add_argument('--num_units', type=int, default=32, help='Number of hidden units')
-parser.add_argument('--num_classes', type=int, default=10, help='Number of target classes')
-parser.add_argument('--iter_rnn', type=int, default=10, help='Number of iterations for RNNs')
+parser.add_argument('--kernelsize', type=int, default=3, help='Size of kernel for benchmarking convolution')
+parser.add_argument('--channels_in', type=int, default=1, help='Number of layers going into a convolution')
+parser.add_argument('--channels_out', type=int, default=1, help='Number of features of a convolution')
+parser.add_argument('--padding', type=str, default='SAME', help='Padding for convolutional layers (SAME or VALID)')
+parser.add_argument('--use_tf_layers', action="store_true", default=False, help='Use tf.layer for convolution')
 
 # Parameters for CNNs
-parser.add_argument('--data_file', type=str, default='', help='.tfrecords file with image data, leave empty for synthetic data')
-parser.add_argument('--train_dir', type=str, default='/tmp/train', help='directory for logging')
-parser.add_argument('--num_layers_cnn', type=int, default=3, help='Number of convolution/pooling layers in CNN')
-parser.add_argument('--num_features', type=int, nargs='+', default=[16,64,128], help='Vector containing the number of features in each convolutional layer')
-parser.add_argument('--kernel_cnn', type=int, nargs='+', default=[5,3,3], help='Vector containing the kernelsize in each convolutional layer')
-parser.add_argument('--pooling_cnn', type=int, nargs='+', default=[2,2,2], help='Vector containing the size of max pooling in each pooling layer')
-parser.add_argument('--fully_connected_size', type=int, default=256, help='Number of neurons in fully connected layer')
-parser.add_argument('--num_trainimg', type=int, default=10000, help='Number of training images if synthetic data')
-parser.add_argument('--num_testimg', type=int, default=10000, help='Number of validation images if synthetic data')
-parser.add_argument('--logstep', type=int, default=500, help='write log at these steps (0 to disable logging)')
-parser.add_argument('--trackingstep', type=int, default=5000, help='write tracking at these steps (0 to disable logging)')
-parser.add_argument('--imgsize', type=int, default=50, help='Size of (square) images')
-parser.add_argument('--numsteps_cnn', type=int, default=10000, help='Number of steps to train CNN')
-parser.add_argument('--batchsize_cnn', type=int, default=128, help='Batch size for training CNN')
+parser.add_argument('--imgsize', type=int, default=224, help='Size of (square) images')
 parser.add_argument('--numclasses', type=int, default=1000, help='Number of image classes')
 parser.add_argument('--optimizer', type=str, default='sgd', help='Optimzer used for VGG-16 (sgd or rmsprop)')
 
-
-parser.add_argument('--iterations_latency', type=int, default=100000, help='Number of iterations for latency')
-parser.add_argument('--device1_latency', type=str, default='/cpu:0', help='First device for latency test')
-parser.add_argument('--device2_latency', type=str, default='/gpu:0', help='Second device for latency test')
-
-parser.add_argument('--pipeline', type=str, default='dataset', help='Type of data pipeline, one of feed_dict, queue_runner, dataset')
-parser.add_argument('--numsteps_input', type=int, default=10000, help='Number of iterations for testing data pipeline')
-parser.add_argument('--batchsize_input', type=int, default=128, help='Batch size for testing data pipeline')
-
-parser.add_argument('--devlist_connectivity', type=str, default='/cpu:0,/gpu:0', help='Devices for testing connection speed')
-parser.add_argument('--matsize_connectivity', type=int, default=2048, help='Size of tensors for testing connection speed')
-parser.add_argument('--iterations_connectivity', type=int, default=1000, help='Number of iterations for testing connection speed')
-
 args = parser.parse_args()
 
-def main(_):
 
+def generate_devlist(devlist, num_gpu):
+    """Creates list with devices
+
+    Args:
+        devlist: Comma separated list of devices, overwrites num_gpu
+        num_gpu: Number of GPUs to be used
+
+    Return:
+        devlist: List of devices
+        use_gpu: Whether GPUs are used (boolean)
+    """
+    if devlist=='':
+        if num_gpu==0:
+            devlist = ['/cpu:0']
+            use_gpu = False
+        else:
+            devlist = ['/gpu:%d' %i for i in range(num_gpu)]
+            use_gpu = True
+    else:
+        use_gpu = ('gpu' in devlist.lower())
+        devlist = devlist.split(',')
+    return devlist, use_gpu
+
+
+def main(_):
+    """Main function that runs all benchmarks"""
+
+    devlist, use_gpu = generate_devlist(args.devlist, args.num_gpu)
+
+
+    ########## Benchmark matrix-matrix multiplication ##########
     if args.testMatMul:
         if args.logfile == '':
-            logfile = str('benchmark_matmul_%s_%s.csv' %(args.device, time.strftime("%Y%m%dS")))
+            logfile = str('/results/benchmark_matmul_%s_%s'
+                    %(args.device, time.strftime("%Y%m%d")))
         else:
             logfile = args.logfile
-        if not os.path.isfile(logfile):
-            header = 'operation, matsize, precision (bits), performance (GFLOPs/sec), memory use (MB)\n'
-            f = open(logfile,'a+')
-            f.write(header)
-            f.close()
+
         ops = (args.matsize**3
-                + (args.matsize-1)*args.matsize**2)
+                + (args.matsize)*args.matsize**2)
                 # matsize**3 multiplications,
                 # (matsize-1)*matsize**2 additions
+
+        gemm = benchmark_matmul.gemm(args, devlist)
+
+        gemm_op, gemm_graph = gemm.create_benchmark_op()
+
+        bm_matmul = run_benchmark.benchmark(
+                gemm_op,
+                args.iter_warmup,
+                args.iter_benchmark,
+                args.iter_timeline,
+                gemm_graph)
         print("========================================\n")
         print("Start matrix multiplication")
-        timeUsed = benchmark_matmul.benchmark_matmul(
-                args.matsize,
-                args.iter,
-                args.logFLOPs,
-                args.num_gpu,
-                args.devlist,
-                args.precision,
-                logfile)
-        print("\n%d x %d matrix multiplication (float%d): %.2f GFLOPS (%.2f matrices per sec)"
+        timeUsed = bm_matmul.run_benchmark()
+        print("\n%d x %d matrix multiplication (float%d): "
+                "%.3f ms, %.3f GFLOPS (%.2f matrices per sec)"
                 % (args.matsize,
                 args.matsize,
                 args.precision,
+                timeUsed*1000,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
+        if not args.no_saving:
+            if not os.path.isfile('%s.csv'%logfile):
+                header = ('operation, matsize, precision (bits), '
+                        'performance (GFLOPs/sec), memory use (MB), '
+                        'comment \n')
+                f = open('%s.csv'%logfile,'a+')
+                f.write(header)
+                f.close()
+
+            if use_gpu:
+                mem = bm_matmul.get_memory_use()
+            else:
+                mem = 0
+            with open('%s.csv'%logfile,'a+') as f:
+                f.write(gemm.generate_logtext(timeUsed, ops, mem))
+
+        if not args.no_timeline:
+            bm_matmul.run_timeline(logfile, args.batchsize)
+        print("\n========================================\n\n")
+
+
+    ########### Benchmark convolution ##########
     if args.testConv:
-        ops = ((args.matsize-args.kernelsize+1)**2
-                * (args.kernelsize**3
-                + (args.kernelsize-1)*args.kernelsize**2))
-                # (matsize.kernelsize+1)**2 GEMMs
+        if args.logfile == '':
+            logfile = str('/results/benchmark_convolution_%s_%s'
+                    %(args.device, time.strftime("%Y%m%d")))
+        else:
+            logfile = args.logfile
+
+        ops = (args.batchsize
+                * args.matsize**2
+                * (2*args.kernelsize**2
+                    * args.channels_in
+                    * args.channels_out)
+                )
+
+        conv = benchmark_conv.convolution(args, devlist)
+
+        if args.use_tf_layers:
+            conv_op, conv_graph = conv.create_benchmark_op1()
+        else:
+            conv_op, conv_graph = conv.create_benchmark_op2()
+
+        bm_conv = run_benchmark.benchmark(
+                conv_op,
+                args.iter_warmup,
+                args.iter_benchmark,
+                args.iter_timeline,
+                conv_graph)
+
         print("========================================\n")
         print("Start convolution")
-        timeUsed = benchmark_conv.benchmark_conv(
-                args.matsize,
-                args.kernelsize,
-                args.iter,
-                args.num_gpu,
-                args.devlist,
-                args.precision)
-        print("\n%d x %d convolution (float%d): %.2f GFLOPS (%.2f matrices per sec)"
+        timeUsed =  bm_conv.run_benchmark()
+
+        print("\n%d x %d x %d x %d convolution (float%d): "
+                "%.3f ms, %.3f GFLOPS (%.2f matrices per sec)"
                 % (args.matsize,
                 args.kernelsize,
+                args.channels_in,
+                args.channels_out,
                 args.precision,
+                timeUsed*1000,
                 ops*1e-9/timeUsed,
                 1/timeUsed))
 
-    if args.testRNN:
-        print("========================================\n")
-        print("Start recurrent neural network (%s)" %args.rnn_type)
-        timeUsed = benchmark_rnn.benchmark_rnn(
-                args.rnn_type,
-                args.seq_length,
-                args.batch_size_rnn,
-                args.num_samples,
-                args.num_units,
-                args.num_classes,
-                args.lr_initial,
-                args.iter_rnn,
-                args.num_gpu,
-                args.devlist,
-                args.precision)
-        print("\n%s:  %.2f steps per sec"
-                % (args.rnn_type,
-                1/timeUsed))
+        if not args.no_saving:
+            if not os.path.isfile('%s.csv'%logfile):
+                header = ('operation, matsize, batchsize, kernelsize, layers, '
+                        'feature, precision (bits), time per run (ms), '
+                        'performance (GFLOPs/sec), memory use (MB), comment\n')
+                f = open('%s.csv'%logfile,'a+')
+                f.write(header)
+                f.close()
 
-    if args.testCNN:
-        print("========================================\n")
-        print("Start training convolutional neural network")
-        timeUsed_train, timeUsed_infer = benchmark_cnnv2.benchmark_cnn(
-                args.num_layers_cnn,
-                args.num_features,
-                args.kernel_cnn,
-                args.pooling_cnn,
-                args.fully_connected_size,
-                args.lr_initial,
-                args.lr_decay,
-                args.precision,
-                args.num_trainimg,
-                args.num_testimg,
-                args.imgsize,
-                args.numsteps_cnn,
-                args.batchsize_cnn,
-                args.keep_in_mem,
-                args.logstep,
-                args.trackingstep,
-                args.num_gpu,
-                args.devlist,
-                args.data_file,
-                args.train_dir)
-        print("========================================\n")
-        numdev=max(1,args.num_gpu)
-        print("convolutional neural network, %d training steps: " \
-                "%.2f steps per sec (%2.f images per sec) \n" \
-                "%d images inferred: %.2f sec (%.2f images per sec)"
-                % (args.numsteps_cnn,
-                args.numsteps_cnn/timeUsed_train,
-                args.numsteps_cnn*args.batchsize_cnn*numdev/timeUsed_train,
-                args.num_testimg,
-                timeUsed_infer,
-                args.num_testimg/timeUsed_infer
-                ))
+            if use_gpu:
+                mem =  bm_conv.get_memory_use()
+            else:
+                mem = 0
+            with open('%s.csv'%logfile,'a+') as f:
+                f.write(conv.generate_logtext(timeUsed, ops, mem))
 
-    if args.testLatency:
-        print("========================================\n")
-        print("Start testing GPU latency")
-        timeUsed = benchmark_latency.benchmark_latency(
-                args.iterations_latency,
-                args.device1_latency,
-                args.device2_latency)
-        print("\nAverage latency = %f ms" % (timeUsed*1000))
+        if not args.no_timeline:
+            bm_conv.run_timeline(
+                    '%s_%dx%dx%dx%d' %(logfile,
+                                       args.matsize,
+                                       args.kernelsize,
+                                       args.channels_in,
+                                       args.channels_out),
+                    args.batchsize)
 
-    if args.testPipeline:
+        print("\n========================================\n\n")
+
+
+    ########## Benchmark training step of VGG16 ##########
+    if args.testVGG16:
+        if args.logfile == '':
+            logfile = str('/results/benchmark_VGG16_%s_%s'
+                    %(args.device, time.strftime("%Y%m%d")))
+        else:
+            logfile = args.logfile
+
+        model = benchmark_VGG16.VGG16(args)
+
+        train_op, vgg16_graph = model.create_benchmark_op()
+
+        bm_vgg16 = run_benchmark.benchmark(
+                train_op,
+                args.iter_warmup,
+                args.iter_benchmark,
+                args.iter_timeline,
+                vgg16_graph)
+
+
         print("========================================\n")
-        print("Start testing input pipeline")
-        timeUsed = benchmark_inputpipeline.benchmark_pipeline(
-                args.num_gpu,
-                args.devlist,
-                args.batchsize_input,
-                args.data_file,
-                args.keep_in_mem,
-                args.num_trainimg,
+        print("Start training VGG-16")
+        timeUsed = bm_vgg16.run_benchmark()
+
+        print("\nTraining VGG-16 (%dx%d pixel, float%d, batchsize %d): "
+                "%.3f ms per batch / %.3f images per sec)"
+                % (args.imgsize,
                 args.imgsize,
                 args.precision,
-                args.numsteps_input,
-                args.pipeline,
-                args.train_dir,
-                args.logstep)
-        num_imgs = args.numsteps_input*args.batchsize_input*max(1,args.num_gpu)
-        print("\n%.2f images per second" %(num_imgs/timeUsed))
+                args.batchsize,
+                timeUsed*1000,
+                args.batchsize/timeUsed))
 
-    if args.testConnectivity:
-        print("========================================\n")
-        print("Start testing input pipeline")
-        benchmark_connectivity.benchmark_connectivity(
-                args.devlist_connectivity,
-                args.precision,
-                args.matsize_connectivity,
-                args.matsize_connectivity,
-                args.iterations_connectivity)
+        if not args.no_saving:
+            if not os.path.isfile('%s.csv'%logfile):
+                header = ('operation, imsize, precision (bits), batchsize,'
+                        'time per batch (ms), performance (img/sec), '
+                        'memory use (MB), comment\n')
+                f = open('%s.csv'%logfile,'a+')
+                f.write(header)
+                f.close()
 
-if args.testVGG16:
-    if args.logfile == '':
-        logfile = str('benchmark_VGG16_%s_%s.csv' %(args.device, time.strftime("%Y%m%dS")))
-    else:
-        logfile = args.logfile
-    if not os.path.isfile(logfile):
-        header = 'operation, imsize, precision (bits), batchsize, performance (img/sec)\n'
-        f = open(logfile,'a+')
-        f.write(header)
-        f.close()
+            if use_gpu:
+                mem = bm_vgg16.get_memory_use()
+            else:
+                mem = 0
+            with open('%s.csv'%logfile,'a+') as f:
+                f.write(model.generate_logtext(timeUsed, mem))
 
-    print("========================================\n")
-    print("Start training VGG-16")
-    img_per_sec = benchmark_VGG16.benchmark_VGG16(
-            args.matsize,
-            args.matsize,
-            args.numclasses,
-            args.optimizer,
-            args.iter,
-            args.batchsize_cnn,
-            args.precision,
-            logfile)
-    print("\nTraining VGG-16 (%dx%d pixel, float%d, batchsize %d): %.2f images per sec)"
-            % (args.matsize,
-            args.matsize,
-            args.precision,
-            args.batchsize_cnn,
-            img_per_sec))
+        if not args.no_timeline:
+            bm_vgg16.run_timeline(logfile, args.batchsize)
+        print("\n========================================\n\n")
 
 if __name__ == '__main__':
-  tf.app.run()
+    tf.app.run()
